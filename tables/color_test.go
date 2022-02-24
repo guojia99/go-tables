@@ -8,7 +8,7 @@ import (
 )
 
 func TestColorStylesSetAndDelete(t *testing.T) {
-	c := NewColorStyles()
+	c := NewDefaultColorStyles()
 
 	// 1、存在标准数据结构时删除
 	c.Set(reflect.Int, color.Cyan)
@@ -41,7 +41,7 @@ func TestColorStylesSetAndDelete(t *testing.T) {
 }
 
 func TestColorStylesParse(t *testing.T) {
-	c := NewColorStyles()
+	c := NewDefaultColorStyles()
 
 	c.Set(1, color.Magenta)
 	c.Set("", color.Cyan)

@@ -6,41 +6,52 @@ import (
 	"reflect"
 )
 
-// ColorStyles
+type ColorStyles interface {
+	// 设置默认颜色值
+	SetDefaultColor(color.Color)
+	// 清空默认颜色值
+	ClearDefaultColor()
+	// 设置颜色
+	Set(interface{}, color.Color)
+	// 删除颜色
+	Delete(interface{})
+	// 序列化颜色
+	Parse(interface{}) string
+	// 序列化后的颜色原本的长度
+	RealLength(string) int
+}
+
+// DefaultColorStyles
 /*
 	中文：
 		typeTo 是依据对不同的【基础数据类型】进行颜色输出时的处理
 		customizeTypeTo 依据输入的数据结构反射出的结构进行输出颜色
 		UseTypeTo 启用与不启用
-		调用优先级CustomizeTypeTo > typeTo >Default
+		调用优先级CustomizeTypeTo > typeTo >defaultColor
 	en:
-
 */
-type ColorStyles struct {
+type DefaultColorStyles struct {
 	Enable          bool
 	customizeTypeTo map[string]color.Color
 	typeTo          map[reflect.Kind]color.Color
-	Default         *color.Color
+	defaultColor    *color.Color
 }
 
-func NewColorStyles() *ColorStyles {
-	return &ColorStyles{
+func NewDefaultColorStyles() *DefaultColorStyles {
+	return &DefaultColorStyles{
 		Enable:          true,
-		Default:         nil,
+		defaultColor:    nil,
 		typeTo:          map[reflect.Kind]color.Color{},
 		customizeTypeTo: map[string]color.Color{},
 	}
 }
-
-func (c *ColorStyles) SetDefaultColor(cor color.Color) {
-	c.Default = &cor
+func (c *DefaultColorStyles) SetDefaultColor(cor color.Color) {
+	c.defaultColor = &cor
 }
-
-func (c *ColorStyles) ClearDefaultColor() {
-	c.Default = nil
+func (c *DefaultColorStyles) ClearDefaultColor() {
+	c.defaultColor = nil
 }
-
-func (c *ColorStyles) Set(in interface{}, cor color.Color) {
+func (c *DefaultColorStyles) Set(in interface{}, cor color.Color) {
 	if kind, ok := in.(reflect.Kind); ok {
 		c.typeTo[kind] = cor
 		return
@@ -51,8 +62,7 @@ func (c *ColorStyles) Set(in interface{}, cor color.Color) {
 	}
 	c.customizeTypeTo[tp.String()] = cor
 }
-
-func (c *ColorStyles) Delete(in interface{}) {
+func (c *DefaultColorStyles) Delete(in interface{}) {
 	if kind, ok := in.(reflect.Kind); ok {
 		if _, have := c.typeTo[kind]; have {
 			delete(c.typeTo, kind)
@@ -67,8 +77,7 @@ func (c *ColorStyles) Delete(in interface{}) {
 		delete(c.customizeTypeTo, tp.String())
 	}
 }
-
-func (c *ColorStyles) Parse(in interface{}) string {
+func (c *DefaultColorStyles) Parse(in interface{}) string {
 	if !c.Enable {
 		return fmt.Sprintf("%v", in)
 	}
@@ -79,13 +88,11 @@ func (c *ColorStyles) Parse(in interface{}) string {
 	if cor, ok := c.typeTo[tp.Kind()]; ok {
 		return cor.Sprint(in)
 	}
-	if c.Default != nil {
-		return c.Default.Sprint(in)
+	if c.defaultColor != nil {
+		return c.defaultColor.Sprint(in)
 	}
 	return fmt.Sprintf("%v", in)
 }
-
-// OriginalLen 返回该字符串原始长度
-func OriginalLen(in string) int {
+func (c *DefaultColorStyles) RealLength(in string) int {
 	return len(color.ClearCode(in))
 }
