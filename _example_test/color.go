@@ -1,14 +1,14 @@
-package tables
+package main
 
 import (
 	"fmt"
 	"github.com/gookit/color"
+	"github.com/guojia99/go-tables/tables"
 	"reflect"
-	"testing"
 )
 
-func TestColorStylesSetAndDelete(t *testing.T) {
-	c := NewDefaultColorStyles()
+func ColorStylesSetAndDelete() {
+	c := tables.NewDefaultColorStyles()
 
 	// 1、存在标准数据结构时删除
 	c.Set(reflect.Int, color.Cyan)
@@ -40,8 +40,8 @@ func TestColorStylesSetAndDelete(t *testing.T) {
 	c.Set(int64(1), color.Cyan)
 }
 
-func TestColorStylesParse(t *testing.T) {
-	c := NewDefaultColorStyles()
+func ColorStylesParse() {
+	c := tables.NewDefaultColorStyles()
 
 	c.Set(1, color.Magenta)
 	c.Set("", color.Cyan)
@@ -66,4 +66,9 @@ func TestColorStylesParse(t *testing.T) {
 	for _, val := range data {
 		fmt.Println(c.Parse(val), []byte(c.Parse(val)))
 	}
+}
+
+func main() {
+	ColorStylesSetAndDelete()
+	ColorStylesParse()
 }

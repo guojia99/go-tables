@@ -68,21 +68,21 @@ func DefaultSerializationTime(t time.Time) string {
 	return getTimeFormal(isFuture, "year", timeDifference/year)
 }
 
-// EnableTimeEngine
-func (t *Table) EnableTimeEngine() *Table {
-	t.useTimeEngine = true
-	return t
-}
-
-// DisableTimeEngine
-func (t *Table) DisableTimeEngine() *Table {
-	t.useTimeEngine = false
-	return t
-}
-
-// SetTimeEngine
-func (t *Table) SetTimeEngine(in func(time time.Time) string) *Table {
-	t.timeEngineFunc = in
-	t.useTimeEngine = true
-	return t
-}
+//// EnableTimeEngine
+//func (t *Table) EnableTimeEngine() *Table {
+//	t.useTimeEngine = true
+//	return t
+//}
+//
+//// DisableTimeEngine
+//func (t *Table) DisableTimeEngine() *Table {
+//	t.useTimeEngine = false
+//	return t
+//}
+//
+//// SetTimeEngine
+//func (t *Table) SetTimeEngine(in func(time time.Time) string) *Table {
+//	t.timeEngineFunc = in
+//	t.useTimeEngine = true
+//	return t
+//}

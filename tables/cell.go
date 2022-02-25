@@ -7,51 +7,63 @@ import (
 
 type Cell struct {
 	val    []string
+	w, h   int
 	mw, mh int
 	ag     align
 }
 
-func NewCell(data []string, ag align) *Cell {
+func NewCell(ag align, data ...string) *Cell {
 	mw := 0
 	for _, val := range data {
-		if l := RealLength(val); l > mw {
+		if l := RealLength(val); l >= mw {
 			mw = l
 		}
 	}
 	return &Cell{
 		val: data,
+		w:   mw,
+		h:   len(data),
 		mw:  mw,
 		mh:  len(data),
 		ag:  ag,
 	}
 }
 
-func (x *Cell) Width() int       { return x.mw }
-func (x *Cell) Height() int      { return x.mh }
-func (x *Cell) SetWidth(in int)  { x.mw = in }
-func (x *Cell) SetHeight(in int) { x.mh = in }
+func (c *Cell) String() string {
+	out := dc.Header(c.mw)
+	for _, val := range c.Lines() {
+		out += fmt.Sprintf("%s%s%s\n", dc.V, val, dc.V)
+	}
+	out += dc.Footer(c.mw)
+	return out
+}
 
-func (x *Cell) Lines() []string {
+func (c *Cell) Width() int     { return c.w }
+func (c *Cell) Height() int    { return c.h }
+func (c *Cell) MaxWidth() int  { return c.mw }
+func (c *Cell) MaxHeight() int { return c.mh }
+
+func (c *Cell) Lines() []string {
 	var out []string
-	for idx := range x.val {
-		out = append(out, x.Line(idx))
+	for idx := range c.val {
+		out = append(out, c.Line(idx))
 	}
 	return out
 }
 
-func (x *Cell) Line(idx int) string {
-	if idx >= len(x.val) {
-		return x.serializer("")
+func (c *Cell) Line(idx int) string {
+	if idx >= len(c.val) {
+		return c.serializer("")
 	}
-	return x.serializer(x.val[idx])
+	return c.serializer(c.val[idx])
 }
 
-func (x *Cell) serializer(in string) string {
+func (c *Cell) serializer(in string) string {
 	if in == "" {
-		return strings.Repeat(" ", x.mw)
+		return strings.Repeat(" ", c.mw)
 	}
-	l := x.mw - RealLength(in)
-	switch x.ag {
+	l := c.mw - RealLength(in)
+	switch c.ag {
 	case AlignLeft, AlignNone:
 		in = in + strings.Repeat(" ", l)
 	case AlignRight:
@@ -64,11 +76,50 @@ func (x *Cell) serializer(in string) string {
 	return in
 }
 
-func (x *Cell) String() string {
-	out := dc.Header(x.mw)
-	for _, val := range x.Lines() {
-		out += fmt.Sprintf("%s%s%s\n", dc.V, val, dc.V)
+type Cells []*Cell
+
+// Max output -> max Widths and max Height
+func (cs Cells) MaxWidths() []int {
+	mws := make([]int, len(cs))
+	for idx, val := range cs {
+		if val.mw >= mws[idx] {
+			mws[idx] = val.mw
+		}
 	}
-	out += dc.Footer(x.mw)
+	return mws
+}
+
+func (cs Cells) MaxH() int {
+	mh := 0
+	for _, val := range cs {
+		if val.mh > mh {
+			mh = val.mh
+		}
+	}
+	return mh
+}
+
+func (cs Cells) Parse(opt *TableOption, mws []int) string {
+	out := ""
+	if mws == nil || len(mws) != len(cs) {
+		mws = cs.MaxWidths()
+	}
+	for idx, val := range cs {
+		if val.mw >= mws[idx] {
+			mws[idx] = val.mw
+		}
+	}
+	mh := cs.MaxH()
+	for idx, val := range cs {
+		val.mw = mws[idx]
+		val.mh = mh
+	}
+	for h := 0; h < mh; h++ {
+		out += opt.Contour.V
+		for _, val := range cs {
+			out += val.Line(h) + opt.Contour.V
+		}
+		out += "\n"
+	}
 	return out
 }

@@ -1,10 +1,10 @@
-package thezen
+package zen
 
 // video -> https://www.gophercon.org.il/
 // zn -> https://cloud.tencent.com/developer/article/1591747
 // en -> https://the-zen-of-go.netlify.app/
 
-var ZenList = []string{
+var List = []string{
 	"Each package fulfils a single purpose",
 	"Handle errors explicitly",
 	"Return early rather than nesting deeply",
@@ -15,10 +15,9 @@ var ZenList = []string{
 	"Write tests to lock in the behaviour of your package’s API",
 	"If you think it’s slow, first prove it with a benchmark",
 	"Moderation is a virtue",
-	"Maintainability counts",
 }
 
-var ZenListZn = []string{
+var ListZn = []string{
 	"每个包实现单一目标",
 	"明确处理错误",
 	"尽早 return，不要深陷",
