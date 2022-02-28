@@ -5,6 +5,10 @@ import (
 	"strings"
 )
 
+func swellFont(in string) string {
+	return fmt.Sprintf("%s%s%s", " ", in, " ")
+}
+
 type Cell struct {
 	val    []string
 	w, h   int
@@ -12,10 +16,12 @@ type Cell struct {
 	ag     align
 }
 
+// NewCell create a cell from a list of strings
 func NewCell(ag align, data ...string) *Cell {
 	mw := 0
-	for _, val := range data {
-		if l := RealLength(val); l >= mw {
+	for idx, val := range data {
+		data[idx] = swellFont(val)
+		if l := RealLength(data[idx]); l >= mw {
 			mw = l
 		}
 	}
@@ -29,6 +35,7 @@ func NewCell(ag align, data ...string) *Cell {
 	}
 }
 
+// String output a single cell
 func (c *Cell) String() string {
 	out := dc.Header(c.mw)
 	for _, val := range c.Lines() {
@@ -43,6 +50,7 @@ func (c *Cell) Height() int    { return c.h }
 func (c *Cell) MaxWidth() int  { return c.mw }
 func (c *Cell) MaxHeight() int { return c.mh }
 
+// Lines get every row of this cell
 func (c *Cell) Lines() []string {
 	var out []string
 	for idx := range c.val {
@@ -51,6 +59,7 @@ func (c *Cell) Lines() []string {
 	return out
 }
 
+// Line get a row of the cell
 func (c *Cell) Line(idx int) string {
 	if idx >= len(c.val) {
 		return c.serializer("")
@@ -58,58 +67,58 @@ func (c *Cell) Line(idx int) string {
 	return c.serializer(c.val[idx])
 }
 
-func (c *Cell) serializer(in string) string {
+// serializer adjust internal size and font orientation
+func (c *Cell) serializer(in string) (out string) {
 	if in == "" {
 		return strings.Repeat(" ", c.mw)
 	}
 	l := c.mw - RealLength(in)
 	switch c.ag {
 	case AlignLeft, AlignNone:
-		in = in + strings.Repeat(" ", l)
+		return in + strings.Repeat(" ", l)
 	case AlignRight:
-		in = strings.Repeat(" ", l) + in
+		return strings.Repeat(" ", l) + in
 	case AlignCenter:
 		leftL := l / 2
 		rightL := l - leftL
-		in = strings.Repeat(" ", leftL) + in + strings.Repeat(" ", rightL)
+		return strings.Repeat(" ", leftL) + in + strings.Repeat(" ", rightL)
 	}
-	return in
+	return
 }
 
-type Cells []*Cell
-
-// Max output -> max Widths and max Height
-func (cs Cells) MaxWidths() []int {
-	mws := make([]int, len(cs))
-	for idx, val := range cs {
-		if val.mw >= mws[idx] {
-			mws[idx] = val.mw
-		}
-	}
-	return mws
-}
-
-func (cs Cells) MaxH() int {
+func MaxH(cells []*Cell) int {
 	mh := 0
-	for _, val := range cs {
-		if val.mh > mh {
-			mh = val.mh
+	for _, val := range cells {
+		if val.MaxHeight() > mh {
+			mh = val.MaxHeight()
 		}
 	}
 	return mh
 }
 
-func (cs Cells) Parse(opt *TableOption, mws []int) string {
-	out := ""
-	if mws == nil || len(mws) != len(cs) {
-		mws = cs.MaxWidths()
-	}
-	for idx, val := range cs {
-		if val.mw >= mws[idx] {
-			mws[idx] = val.mw
+func MaxCellsWidths(cells []*Cell) []int {
+	mws := make([]int, len(cells))
+	for idx, val := range cells {
+		if val.MaxWidth() >= mws[idx] {
+			mws[idx] = val.MaxWidth()
 		}
 	}
-	mh := cs.MaxH()
+	return mws
+}
+
+type Cells []*Cell
+
+func (cs Cells) Parse(mws []int, opt *Option) string {
+	out := ""
+	if mws == nil || len(mws) != len(cs) {
+		mws = MaxCellsWidths(cs)
+	}
+	for idx, val := range cs {
+		if val.MaxWidth() >= mws[idx] {
+			mws[idx] = val.MaxWidth()
+		}
+	}
+	mh := MaxH(cs)
 	for idx, val := range cs {
 		val.mw = mws[idx]
 		val.mh = mh

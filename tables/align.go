@@ -1,6 +1,5 @@
 package tables
 
-import "C"
 import (
 	"fmt"
 	"strings"
@@ -40,12 +39,32 @@ func (c Contour) Header(vLen int) string {
 	return fmt.Sprintf("%s%s%s\n", c.UL, strings.Repeat(c.H, vLen), c.UR)
 }
 
-func (c Contour) Center(vLen int) string {
-	return fmt.Sprintf("%s%s%s", c.V, strings.Repeat(" ", vLen), c.V)
-}
-
 func (c Contour) Footer(vLen int) string {
 	return fmt.Sprintf("%s%s%s\n", c.DL, strings.Repeat(c.H, vLen), c.DR)
+}
+
+func (c Contour) slideCenters(left, right, val string, valLen []int) string {
+	out := left
+	for idx, l := range valLen {
+		out += strings.Repeat(c.H, l)
+		if idx != len(valLen)-1 {
+			out += val
+		}
+	}
+	out += right + "\n"
+	return out
+}
+
+func (c Contour) SlideHeader(vLen ...int) string {
+	return c.slideCenters(c.UL, c.UR, c.HD, vLen)
+}
+
+func (c Contour) SlideCenter(vLen ...int) string {
+	return c.slideCenters(c.VR, c.VL, c.VH, vLen)
+}
+
+func (c Contour) SlideFooter(vLen ...int) string {
+	return c.slideCenters(c.DL, c.DR, c.HU, vLen)
 }
 
 func RealLength(in string) int {
@@ -81,4 +100,8 @@ re:
 // You can add your full width interval
 func AppTowBoxFonts(fws ...FullWidth) {
 	fullWidth = append(fullWidth, fws...)
+}
+
+func DefaultRealLength(in string) int {
+	return len(color.ClearCode(in))
 }
