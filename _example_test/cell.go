@@ -8,10 +8,10 @@ import (
 )
 
 func main() {
-	fmt.Println(tables.NewCell(tables.AlignLeft, zen.List...))
+	fmt.Println(tables_back.NewCell(tables_back.AlignLeft, zen.List...))
 
-	var cells tables.Cells
-	cells = append(cells, tables.NewCell(tables.AlignCenter, zen.ListZn...))
-	cells = append(cells, tables.NewCell(tables.AlignCenter, zen.List...))
-	fmt.Println(cells.Parse(tables.NewOption(), []int{1, 10}))
+	var cells tables_back.Cells
+	cells = append(cells, tables_back.NewCell(tables_back.AlignCenter, zen.ListZn...))
+	cells = append(cells, tables_back.NewCell(tables_back.AlignCenter, zen.List...))
+	fmt.Println(cells.Parse(tables_back.NewOption(), []int{1, 10}))
 }

@@ -1,4 +1,4 @@
-package tables
+package tables_back
 
 import (
 	"fmt"
@@ -30,7 +30,7 @@ type Contour struct {
 	DL string // '└'  Down left
 }
 
-var DefaultContour = &Contour{
+var DefaultContour = Contour{
 	H: "─", V: "│", VH: "┼", HU: "┴", HD: "┬", VL: "┤", VR: "├", UR: "┐", UL: "┌", DR: "┘", DL: "└",
 }
 var dc = DefaultContour
@@ -43,7 +43,19 @@ func (c Contour) Footer(vLen int) string {
 	return fmt.Sprintf("%s%s%s\n", c.DL, strings.Repeat(c.H, vLen), c.DR)
 }
 
-func (c Contour) slideCenters(left, right, val string, valLen []int) string {
+func (c Contour) SlideHeader(vLen ...int) string {
+	return c.slideVal(c.UL, c.UR, c.HD, vLen)
+}
+
+func (c Contour) SlideCenter(vLen ...int) string {
+	return c.slideVal(c.VR, c.VL, c.VH, vLen)
+}
+
+func (c Contour) SlideFooter(vLen ...int) string {
+	return c.slideVal(c.DL, c.DR, c.HU, vLen)
+}
+
+func (c Contour) slideVal(left, right, val string, valLen []int) string {
 	out := left
 	for idx, l := range valLen {
 		out += strings.Repeat(c.H, l)
@@ -53,18 +65,6 @@ func (c Contour) slideCenters(left, right, val string, valLen []int) string {
 	}
 	out += right + "\n"
 	return out
-}
-
-func (c Contour) SlideHeader(vLen ...int) string {
-	return c.slideCenters(c.UL, c.UR, c.HD, vLen)
-}
-
-func (c Contour) SlideCenter(vLen ...int) string {
-	return c.slideCenters(c.VR, c.VL, c.VH, vLen)
-}
-
-func (c Contour) SlideFooter(vLen ...int) string {
-	return c.slideCenters(c.DL, c.DR, c.HU, vLen)
 }
 
 func RealLength(in string) int {

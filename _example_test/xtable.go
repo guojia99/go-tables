@@ -27,10 +27,10 @@ func structTableExample() {
 		})
 	}
 
-	opt := tables.NewOption()
-	opt.Align = tables.AlignCenter
+	opt := tables_back.NewOption()
+	opt.Align = tables_back.AlignCenter
 
-	t, err := tables.NewXTable(v, opt)
+	t, err := tables_back.NewTable(v, opt)
 	if err != nil {
 		fmt.Println("[error]", err)
 		return
@@ -39,10 +39,10 @@ func structTableExample() {
 }
 
 func slideTableExample() {
-	opt := tables.NewOption()
-	opt.Align = tables.AlignCenter
+	opt := tables_back.NewOption()
+	opt.Align = tables_back.AlignRight
 
-	t, err := tables.NewXTable(zen.ListZn, opt)
+	t, err := tables_back.NewTable(zen.ListZn, opt)
 	if err != nil {
 		fmt.Println("[error]", err)
 		return
