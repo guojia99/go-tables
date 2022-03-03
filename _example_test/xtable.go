@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/guojia99/go-tables/_example_test/zen"
-	"github.com/guojia99/go-tables/tables"
+	"github.com/guojia99/go-tables/tables-back"
 )
 
 type tt struct {

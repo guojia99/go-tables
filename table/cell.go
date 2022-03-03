@@ -2,10 +2,50 @@ package table
 
 import (
 	"fmt"
-	"strings"
-
 	"github.com/gookit/color"
+	"regexp"
+	"runtime"
+	"strings"
 )
+
+func swellFont(in string) string { return fmt.Sprintf("%s%s%s", " ", in, " ") }
+
+var noWinCodeExpr = regexp.MustCompile(`\033\[[\d;?]+m`)
+var stripAnsiEscapeRegexp = regexp.MustCompile(`(\x9B|\x1B\[)[0-?]*[ -/]*[@-~]`)
+
+func realLength(in string) int {
+	if runtime.GOOS != `windows` {
+		return stringLength([]rune(noWinCodeExpr.ReplaceAllString(in, "")))
+	}
+	color.Red.Println()
+	return stringLength([]rune(in))
+}
+
+type FullWidth struct {
+	from rune
+	to   rune
+}
+
+var fullWidth = []FullWidth{
+	// Chinese
+	{0x2E80, 0x9FD0}, {0xAC00, 0xD7A3}, {0xF900, 0xFACE},
+	{0xFE00, 0xFE6C}, {0xFF00, 0xFF60}, {0x20000, 0x2FA1D},
+	{12286, 12351},
+}
+
+func stringLength(r []rune) (length int) {
+	length = len(r)
+re:
+	for _, val := range r {
+		for _, twoBox := range fullWidth {
+			if val >= twoBox.from && val <= twoBox.to {
+				length++
+				continue re
+			}
+		}
+	}
+	return
+}
 
 type Align int
 
@@ -40,35 +80,6 @@ func (a Align) Repeat(in string, w int) string {
 		return strings.Repeat(" ", l) + in
 	}
 	return strings.Repeat(" ", w)
-}
-
-func swellFont(in string) string { return fmt.Sprintf("%s%s%s", " ", in, " ") }
-func realLength(in string) int   { return stringLength([]rune(color.ClearCode(in))) }
-
-type FullWidth struct {
-	from rune
-	to   rune
-}
-
-var fullWidth = []FullWidth{
-	// Chinese
-	{0x2E80, 0x9FD0}, {0xAC00, 0xD7A3}, {0xF900, 0xFACE},
-	{0xFE00, 0xFE6C}, {0xFF00, 0xFF60}, {0x20000, 0x2FA1D},
-	{12286, 12351},
-}
-
-func stringLength(r []rune) (length int) {
-	length = len(r)
-re:
-	for _, val := range r {
-		for _, twoBox := range fullWidth {
-			if val >= twoBox.from && val <= twoBox.to {
-				length++
-				continue re
-			}
-		}
-	}
-	return
 }
 
 type Cell interface {
@@ -139,3 +150,6 @@ func (c *EmptyCell) Lines() (out []string) {
 	}
 	return
 }
+
+type Row []Cell
+type Rows []Row
