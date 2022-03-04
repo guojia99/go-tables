@@ -8,6 +8,7 @@ const (
 	None        kind = iota // other
 	Struct                  // struct{}
 	Map                     // map[interface{}]interface{}
+	MapSlice                // map[interface{}][]interface{}
 	StructSlice             // []struct{}
 	Slice                   // []interface{}
 	Slice2D                 // [][]interface{}

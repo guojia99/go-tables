@@ -8,6 +8,7 @@ const (
 	None        kind = iota // other
 	Struct                  // struct{}
 	Map                     // map[interface{}]interface{}
+	MapSlice                // map[interface{}][]interface{}
 	StructSlice             // []struct{}
 	Slice                   // []interface{}
 	Slice2D                 // [][]interface{}
@@ -19,6 +20,10 @@ func parsingType(in interface{}) kind {
 	case reflect.Struct:
 		return Struct
 	case reflect.Map:
+		switch v.Type().Elem().Kind() {
+		case reflect.Slice:
+			return MapSlice
+		}
 		return Map
 	case reflect.Slice:
 		switch v.Type().Elem().Kind() {
@@ -26,12 +31,12 @@ func parsingType(in interface{}) kind {
 			return StructSlice
 		case reflect.Slice:
 			return Slice2D
-		default:
-			return Slice
 		}
+		return Slice
 	}
 	return None
 }
+
 func valueInterface(in reflect.Value) interface{} {
 	switch in.Type().Kind() {
 	case reflect.Interface:

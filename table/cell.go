@@ -2,7 +2,6 @@ package table
 
 import (
 	"fmt"
-	"github.com/gookit/color"
 	"regexp"
 	"runtime"
 	"strings"
@@ -11,13 +10,11 @@ import (
 func swellFont(in string) string { return fmt.Sprintf("%s%s%s", " ", in, " ") }
 
 var noWinCodeExpr = regexp.MustCompile(`\033\[[\d;?]+m`)
-var stripAnsiEscapeRegexp = regexp.MustCompile(`(\x9B|\x1B\[)[0-?]*[ -/]*[@-~]`)
 
 func realLength(in string) int {
 	if runtime.GOOS != `windows` {
 		return stringLength([]rune(noWinCodeExpr.ReplaceAllString(in, "")))
 	}
-	color.Red.Println()
 	return stringLength([]rune(in))
 }
 
