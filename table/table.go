@@ -46,9 +46,36 @@ func mapTable(in interface{}, ag Align) (*Table, error) {
 	}
 	return tb, nil
 }
+
 func mapSliceTable(in interface{}, ag Align) (*Table, error) {
 	tb := &Table{}
+	inValue := reflect.ValueOf(in)
+	keys := inValue.MapKeys()
+	maxIdx := 0
 
+	m := make([]reflect.Value, len(keys))
+	for idx, key := range keys {
+		tb.Headers = append(tb.Headers, NewBaseCell(ag, fmt.Sprintf("%v", valueInterface(key))))
+		v := inValue.MapIndex(key)
+		if l := v.Len(); maxIdx < l {
+			maxIdx = l
+		}
+		m[idx] = v
+	}
+	tb.Body = make(Rows, len(keys))
+	for idx := range tb.Body {
+		tb.Body[idx] = make(Row, maxIdx)
+	}
+
+	for i, val := range m {
+		for j := 0; j < maxIdx; j++ {
+			if j >= val.Len() {
+				tb.Body[i][j] = NewEmptyCell(0, 1)
+				continue
+			}
+			tb.Body[i][j] = NewBaseCell(ag, fmt.Sprintf("%v", valueInterface(val.Index(j))))
+		}
+	}
 	return tb, nil
 }
 
@@ -104,6 +131,13 @@ func sliceTable(in interface{}, ag Align) (*Table, error) {
 
 func slice2DTable(in interface{}, ag Align) (*Table, error) {
 	tb := &Table{}
+	inValue := reflect.ValueOf(in)
+	slice2D := make([]interface{}, inValue.Len())
+
+	for i := 0; i < inValue.Len(); i++ {
+		slice2D[i] = inValue.Index(i).Interface()
+	}
+
 	return tb, nil
 }
 
