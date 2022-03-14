@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+
+	"github.com/guojia99/go-tables/table/utils"
 )
 
 type Table struct {
@@ -13,18 +15,18 @@ type Table struct {
 }
 
 func SimpleTable(in interface{}, align Align) (*Table, error) {
-	switch parsingType(in) {
-	case Struct:
+	switch utils.ParsingType(in) {
+	case utils.Struct:
 		return structTable(in, align)
-	case Map:
+	case utils.Map:
 		return mapTable(in, align)
-	case MapSlice:
+	case utils.MapSlice:
 		return mapSliceTable(in, align)
-	case StructSlice:
+	case utils.StructSlice:
 		return structSliceTable(in, align)
-	case Slice:
+	case utils.Slice:
 		return sliceTable(in, align)
-	case Slice2D:
+	case utils.Slice2D:
 		return slice2DTable(in, align)
 	}
 	return nil, errors.New("the data body required to create a new table frame does not support this type")
@@ -40,8 +42,8 @@ func mapTable(in interface{}, ag Align) (*Table, error) {
 	}
 	for _, val := range inValue.MapKeys() {
 		tb.Body = append(tb.Body, Row{
-			NewBaseCell(ag, fmt.Sprintf("%v", valueInterface(val))),
-			NewBaseCell(ag, fmt.Sprintf("%v", valueInterface(inValue.MapIndex(val)))),
+			NewBaseCell(ag, fmt.Sprintf("%v", utils.ValueInterface(val))),
+			NewBaseCell(ag, fmt.Sprintf("%v", utils.ValueInterface(inValue.MapIndex(val)))),
 		})
 	}
 	return tb, nil
@@ -55,7 +57,7 @@ func mapSliceTable(in interface{}, ag Align) (*Table, error) {
 
 	m := make([]reflect.Value, len(keys))
 	for idx, key := range keys {
-		tb.Headers = append(tb.Headers, NewBaseCell(ag, fmt.Sprintf("%v", valueInterface(key))))
+		tb.Headers = append(tb.Headers, NewBaseCell(ag, fmt.Sprintf("%v", utils.ValueInterface(key))))
 		v := inValue.MapIndex(key)
 		if l := v.Len(); maxIdx < l {
 			maxIdx = l
@@ -73,7 +75,7 @@ func mapSliceTable(in interface{}, ag Align) (*Table, error) {
 				tb.Body[i][j] = NewEmptyCell(0, 1)
 				continue
 			}
-			tb.Body[i][j] = NewBaseCell(ag, fmt.Sprintf("%v", valueInterface(val.Index(j))))
+			tb.Body[i][j] = NewBaseCell(ag, fmt.Sprintf("%v", utils.ValueInterface(val.Index(j))))
 		}
 	}
 	return tb, nil
@@ -133,7 +135,6 @@ func slice2DTable(in interface{}, ag Align) (*Table, error) {
 	tb := &Table{}
 	inValue := reflect.ValueOf(in)
 	slice2D := make([]interface{}, inValue.Len())
-
 	for i := 0; i < inValue.Len(); i++ {
 		slice2D[i] = inValue.Index(i).Interface()
 	}
@@ -155,7 +156,7 @@ func structToRows(in interface{}, ag Align) (names, value Row, err error) {
 	for n := 0; n < inValue.NumField(); n++ {
 		field := inType.Field(n)
 		baseName := field.Name
-		if !isHeadCapitalLetters(baseName) {
+		if !utils.IsHeadCapitalLetters(baseName) {
 			continue
 		}
 		tableTag := field.Tag.Get("table")
@@ -163,7 +164,7 @@ func structToRows(in interface{}, ag Align) (names, value Row, err error) {
 		if jsonTag == "-" || tableTag == "-" {
 			continue
 		}
-		colValue := fmt.Sprintf("%v", valueInterface(inValue.FieldByName(baseName)))
+		colValue := fmt.Sprintf("%v", utils.ValueInterface(inValue.FieldByName(baseName)))
 		if tableTag != "" {
 			baseName = tableTag
 		} else if jsonTag != "" {
@@ -182,7 +183,7 @@ func sliceToRow(in interface{}, ag Align) (value Row, err error) {
 		if val.Kind() == reflect.Ptr {
 			val = val.Elem()
 		}
-		row = append(row, NewBaseCell(ag, fmt.Sprintf("%v", valueInterface(val))))
+		row = append(row, NewBaseCell(ag, fmt.Sprintf("%v", utils.ValueInterface(val))))
 	}
 	return row, nil
 }

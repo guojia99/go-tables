@@ -1,4 +1,4 @@
-package table
+package utils
 
 import (
 	"testing"
@@ -14,8 +14,33 @@ func Test_parsingType(t *testing.T) {
 		want kind
 	}{
 		{
-			name: "none",
+			name: "none string",
 			args: args{in: "none"},
+			want: None,
+		},
+		{
+			name: "none int",
+			args: args{in: 1},
+			want: None,
+		},
+		{
+			name: "none float",
+			args: args{in: 1.1},
+			want: None,
+		},
+		{
+			name: "none complex",
+			args: args{in: complex(1, 11)},
+			want: None,
+		},
+		{
+			name: "none nil",
+			args: args{in: nil},
+			want: None,
+		},
+		{
+			name: "none func",
+			args: args{in: func() {}},
 			want: None,
 		},
 		{
@@ -51,7 +76,7 @@ func Test_parsingType(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := parsingType(tt.args.in); got != tt.want {
+			if got := ParsingType(tt.args.in); got != tt.want {
 				t.Errorf("parsingType() = %v, want %v", got, tt.want)
 			}
 		})
@@ -68,12 +93,19 @@ func Test_isHeadCapitalLetters(t *testing.T) {
 		want bool
 	}{
 		{
-			name: "A",
+			name: "OK",
+			args: args{in: "ADDDs"},
+			want: true,
+		},
+		{
+			name: "none",
+			args: args{in: "sDD"},
+			want: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := isHeadCapitalLetters(tt.args.in); got != tt.want {
+			if got := IsHeadCapitalLetters(tt.args.in); got != tt.want {
 				t.Errorf("isHeadCapitalLetters() = %v, want %v", got, tt.want)
 			}
 		})

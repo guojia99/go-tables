@@ -1,4 +1,4 @@
-package table
+package utils
 
 import "reflect"
 
@@ -14,7 +14,7 @@ const (
 	Slice2D                 // [][]interface{}
 )
 
-func parsingType(in interface{}) kind {
+func ParsingType(in interface{}) kind {
 	v := reflect.ValueOf(in)
 	switch v.Kind() {
 	case reflect.Struct:
@@ -37,7 +37,7 @@ func parsingType(in interface{}) kind {
 	return None
 }
 
-func valueInterface(in reflect.Value) interface{} {
+func ValueInterface(in reflect.Value) interface{} {
 	switch in.Type().Kind() {
 	case reflect.Interface:
 		return in.Interface()
@@ -61,7 +61,7 @@ func valueInterface(in reflect.Value) interface{} {
 	return ""
 }
 
-func isHeadCapitalLetters(in string) bool {
+func IsHeadCapitalLetters(in string) bool {
 	if len(in) == 0 {
 		return false
 	}
