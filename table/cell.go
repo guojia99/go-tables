@@ -216,3 +216,50 @@ re:
 
 type Row []Cell
 type Rows []Row
+
+//func MaxH(cells []*Cell) int {
+//	mh := 0
+//	for _, val := range cells {
+//		if val.MaxHeight() > mh {
+//			mh = val.MaxHeight()
+//		}
+//	}
+//	return mh
+//}
+//
+//func MaxCellsWidths(cells []*Cell) []int {
+//	mws := make([]int, len(cells))
+//	for idx, val := range cells {
+//		if val.MaxWidth() >= mws[idx] {
+//			mws[idx] = val.MaxWidth()
+//		}
+//	}
+//	return mws
+//}
+//
+//type Cells []*Cell
+//
+//func (cs Cells) Parse(mws []int, opt *Option) string {
+//	out := ""
+//	if mws == nil || len(mws) != len(cs) {
+//		mws = MaxCellsWidths(cs)
+//	}
+//	for idx, val := range cs {
+//		if val.MaxWidth() >= mws[idx] {
+//			mws[idx] = val.MaxWidth()
+//		}
+//	}
+//	mh := MaxH(cs)
+//	for idx, val := range cs {
+//		val.mw = mws[idx]
+//		val.mh = mh
+//	}
+//	for h := 0; h < mh; h++ {
+//		out += opt.Contour.V
+//		for _, val := range cs {
+//			out += val.Line(h) + opt.Contour.V
+//		}
+//		out += "\n"
+//	}
+//	return out
+//}
