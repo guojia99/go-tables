@@ -31,7 +31,7 @@ type Contour struct {
 }
 
 var (
-	// DefaultContour
+	// DefaultContour default
 	DefaultContour = Contour{
 		T: "─", R: "|",
 		L: "|", D: "─",
@@ -42,7 +42,7 @@ var (
 		I: "┼", CH: "|", CV: "-",
 	}
 
-	// EmptyContour
+	// EmptyContour is empty
 	EmptyContour = Contour{
 		T: "", R: "",
 		L: "", D: "",
@@ -53,7 +53,7 @@ var (
 		I: "", CH: "", CV: "",
 	}
 
-	// MariaDBContour
+	// MariaDBContour like to mysql
 	MariaDBContour = Contour{
 		T: "-", R: "|",
 		L: "|", D: "-",

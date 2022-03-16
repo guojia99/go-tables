@@ -74,19 +74,7 @@ func DefaultSerializationTime(t time.Time) string {
 
 // DefaultColorStyles
 /*
-	中文：
-		目前使用的颜色只支持linux和macOs系统, windows系统需要自己定义好一个颜色引擎
-		+ 调用优先级: CustomizeTypeTo > typeTo > defaultColor
-			- Enable: 启用与不启用
-			- typeTo: 是依据对不同的【基础数据类型】进行颜色输出时的处理
-			- customizeTypeTo: 依据输入的数据结构反射出的结构进行输出颜色
-	en:
-		The currently used colors only support linux and macOs systems, windows system needs to define a color engine by itself
-		+ call priority: CustomizeTypeTo > typeTo > defaultColor
-			- Enable: enable and disable
-			- typeTo: it is based on the processing of color output for different [basic data types]
-			- customizeTypeTo: output color according to the structure reflected from the input data structure
-*/
+ */
 
 type defaultColorStyles struct {
 	Enable          bool

@@ -11,7 +11,7 @@ func Test_parsingType(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want kind
+		want Kind
 	}{
 		{
 			name: "none string",

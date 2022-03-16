@@ -2,10 +2,10 @@ package utils
 
 import "reflect"
 
-type kind int
+type Kind int
 
 const (
-	None        kind = iota // other
+	None        Kind = iota // other
 	Struct                  // struct{}
 	Map                     // map[interface{}]interface{}
 	MapSlice                // map[interface{}][]interface{}
@@ -14,7 +14,7 @@ const (
 	Slice2D                 // [][]interface{}
 )
 
-func ParsingType(in interface{}) kind {
+func ParsingType(in interface{}) Kind {
 	v := reflect.ValueOf(in)
 	switch v.Kind() {
 	case reflect.Struct:
