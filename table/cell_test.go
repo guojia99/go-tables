@@ -2,7 +2,7 @@ package table
 
 import (
 	"fmt"
-	"github.com/guojia99/go-tables/_example_test/zen"
+	"github.com/guojia99/go-tables/_example/zen"
 	"testing"
 )
 
