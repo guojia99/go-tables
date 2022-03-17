@@ -3,6 +3,7 @@ package table
 import (
 	"fmt"
 	"github.com/gookit/color"
+	"math"
 	"reflect"
 	"runtime"
 	"time"
@@ -11,37 +12,26 @@ import (
 /*
 	TransformContent shi
 	cn:
-		当你不想对原有内容作出改变的时候,错误应当返回nil
+		当你不想对原有内容作出改变的时候,返回值为原值
 	en:
-		When you do not want to make changes to the original content, the error should return nil
+		When you do not want to make changes to the original content, should return origin
 	E.g:
 		func t(in interface{}) (interface{}, error) {
 			times, ok := in.(time.Time)
 			if !ok {
-				return in, nil  <<<<-----
+				return in  <<<<-----
 			}
 			return times.Format(time.RFC822), nil
 		}
 */
 type TransformContent func(in interface{}) interface{}
 
-type TransformContents []TransformContent
-
-/*
-	cn: 将会对每一个变更方法进行一一执行
-	en: Convert will implement change method one by one
-*/
-func (t TransformContents) Convert(in interface{}) interface{} {
-	for _, f := range t {
-		in = f(in)
-	}
-	return in
-}
-
 /*
 	DefaultTransformContentByTime
 	cn:
+		格式化序列时间
 	en:
+		format sequence time
 */
 const (
 	second = 1
@@ -80,11 +70,14 @@ func DefaultTransformContentByTime(in interface{}) interface{} {
 	if !ok {
 		return in
 	}
-	timeDifference := int64(time.Now().Second() - t.Second())
+	timeDifference := int64(time.Now().Sub(t).Seconds())
 	isFuture := false
 	if timeDifference < 0 {
 		isFuture = true
 	}
+
+	timeDifference = int64(math.Abs(float64(timeDifference)))
+
 	if timeDifference <= minute {
 		return getTimeFormal(isFuture, "second", timeDifference)
 	}
@@ -106,22 +99,32 @@ func DefaultTransformContentByTime(in interface{}) interface{} {
 /*
 	DefaultTransformContentByColor
 	中文：
-		依据不同类型进行颜色的区分输出,输出最终格式为string
+		*依据不同类型进行颜色的区分输出,输出最终格式为string*
 		目前使用的颜色只支持linux和macOs系统, windows系统需要自己参考定义好一个颜色引擎
 		+ 调用优先级: CustomizeTypeTo > typeTo > defaultColor
 			- Enable: 启用与不启用
 			- typeTo: 是依据对不同的【基础数据类型】进行颜色输出时的处理
 			- customizeTypeTo: 依据输入的数据结构反射出的结构进行输出颜色
 	en:
-		Differentiate the output of colors according to different types, and the final output format is string
+		*Differentiate the output of colors according to different types,
+         and the final output format is string*
 		The currently used colors only support linux and `macOS` systems, `windows`system needs refer to define a color engine by itself
 		+ call priority: CustomizeTypeTo > typeTo > defaultColor
 			- Enable: enable and disable
 			- typeTo: it is based on the processing of color output for different [basic data types]
 			- customizeTypeTo: output color according to the structure reflected from the input data structure
-
+	func:
+		DisEnableDefaultColor
+			- 禁用
+		EnableDefaultColor
+			- 启用
+		SetDefaultColor
+			- 设置该类型数据渲染为该颜色
+		DeleteDefaultColor
+			- 删除输入同类型的颜色
 */
 func DefaultTransformContentByColor(in interface{}) interface{} {
+
 	if !DefaultColorStylesClient.Enable {
 		return in
 	}
@@ -130,7 +133,9 @@ func DefaultTransformContentByColor(in interface{}) interface{} {
 		DefaultColorStylesClient.Enable = true
 	default:
 		DefaultColorStylesClient.Enable = false
+		return in
 	}
+
 	tp := reflect.TypeOf(in)
 	if cor, ok := DefaultColorStylesClient.customizeTypeTo[tp.String()]; ok {
 		return cor.Sprint(in)

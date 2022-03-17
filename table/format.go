@@ -1,5 +1,44 @@
 package table
 
+import (
+	"strings"
+)
+
+var (
+	// DefaultContour default
+	DefaultContour = Contour{
+		T: "─", R: "|",
+		L: "|", D: "─",
+		TL: "┌", TR: "┐",
+		DL: "└", DR: "┘",
+		TI: "┬", DI: "┴",
+		LI: "├", RI: "┤",
+		I: "┼", CH: "|", CV: "-",
+	}
+
+	// EmptyContour is empty
+	EmptyContour = Contour{
+		T: " ", R: " ",
+		L: " ", D: " ",
+		TL: " ", TR: " ",
+		DL: " ", DR: " ",
+		TI: " ", DI: " ",
+		LI: " ", RI: " ",
+		I: " ", CH: " ", CV: " ",
+	}
+
+	// MariaDBContour like to mysql
+	MariaDBContour = Contour{
+		T: "-", R: "|",
+		L: "|", D: "-",
+		TL: "+", TR: "+",
+		DL: "+", DR: "+",
+		TI: "+", DI: "+",
+		LI: "+", RI: "+",
+		I: "+", CH: "|", CV: "-",
+	}
+)
+
 // Contour outlines are required when rendering the table
 type Contour struct {
 	// border like standard 8 azimuth
@@ -30,37 +69,26 @@ type Contour struct {
 	I, CH, CV string
 }
 
-var (
-	// DefaultContour default
-	DefaultContour = Contour{
-		T: "─", R: "|",
-		L: "|", D: "─",
-		TL: "┌", TR: "┐",
-		DL: "└", DR: "┘",
-		TI: "┬", DI: "┴",
-		LI: "├", RI: "┤",
-		I: "┼", CH: "|", CV: "-",
+func (c Contour) Handler(sw []int) string {
+	out := c.TL
+	for idx, s := range sw {
+		out += strings.Repeat(c.T, s)
+		if idx < len(sw)-1 {
+			out += c.TI
+		}
 	}
+	out += c.TR
+	return out
+}
 
-	// EmptyContour is empty
-	EmptyContour = Contour{
-		T: "", R: "",
-		L: "", D: "",
-		TL: "", TR: "",
-		DL: "", DR: "",
-		TI: "", DI: "",
-		LI: "", RI: "",
-		I: "", CH: "", CV: "",
+func (c Contour) Footer(sw []int) string {
+	out := c.DL
+	for idx, s := range sw {
+		out += strings.Repeat(c.D, s)
+		if idx < len(sw)-1 {
+			out += c.DI
+		}
 	}
-
-	// MariaDBContour like to mysql
-	MariaDBContour = Contour{
-		T: "-", R: "|",
-		L: "|", D: "-",
-		TL: "+", TR: "+",
-		DL: "+", DR: "+",
-		TI: "+", DI: "+",
-		LI: "+", RI: "+",
-		I: "+", CH: "|", CV: "-",
-	}
-)
+	out += c.DR
+	return out
+}
