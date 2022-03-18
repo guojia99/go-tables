@@ -41,7 +41,7 @@ tb, _ := table.SimpleTable(data, opt)
 fmt.Println(tb)
 ```
 
-- [Struct]: 	_example/struct-table.go
+- [Struct]: 	_example/struct-table.go "struct"
 
 ```go
 type structTable struct {
