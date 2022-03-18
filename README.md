@@ -58,9 +58,19 @@ data := structTable{
     NoUse:  "nouse",
     NoUse2: "nouse",
 }
+
+┌────────┬───────┐
+|   #    | value |
+├────────┼───────┤
+|  Str   | value |
+| value  |  val  |
+| number |  111  |
+└────────┴───────┘
 ```
 
 ![](doc/doc-images/struct-table.png)
+
+
 
 - Map
 
@@ -74,6 +84,18 @@ data := map[string]string{
     "key5": "value5",
     "key6": "value6",
 }
+
+┌──────┬────────┐
+| key  | value  |
+├──────┼────────┤
+| key1 | value1 |
+| key2 | value2 |
+| key3 | value3 |
+| key4 | value4 |
+| key5 | value5 |
+| key6 | value6 |
+└──────┴────────┘
+
 data2 := map[string]interface{}{
     "number":  1,
     "string":  "guojia",
@@ -84,6 +106,17 @@ data2 := map[string]interface{}{
         a string
     }{a: "123"},
 }
+
+┌─────────┬───────────┐
+|   key   |   value   |
+├─────────┼───────────┤
+| complex |  (1-1i)   |
+|  key6   |   {123}   |
+| number  |     1     |
+| string  |  guojia   |
+|  float  |    2.4    |
+|  slide  | [1 2 3 4] |
+└─────────┴───────────┘
 ```
 
 ![](doc/doc-images/map-table.png)
@@ -105,6 +138,16 @@ data := []structSliceTable{
     {"data4", "val4", 4, "no4", "no5"},
     {"data5", "val5", 5, "no5", "no6"},
 }
+
+┌───────┬───────┬────────┐
+|  Str  | value | number |
+├───────┼───────┼────────┤
+| data1 | val1  |   1    |
+| data2 | val2  |   2    |
+| data3 | val3  |   3    |
+| data4 | val4  |   4    |
+| data5 | val5  |   5    |
+└───────┴───────┴────────┘
 ```
 
 ![](doc/doc-images/structslide-table.png)
@@ -124,6 +167,21 @@ data := []string{
 	"If you think it’s slow, first prove it with a benchmark",
 	"Moderation is a virtue",
 }
+
+┌────┬────────────────────────────────────────────────────────────┐
+| No |                           value                            |
+├────┼────────────────────────────────────────────────────────────┤
+| 0  |           Each package fulfils a single purpose            |
+| 1  |                  Handle errors explicitly                  |
+| 2  |          Return early rather than nesting deeply           |
+| 3  |              Leave concurrency to the caller               |
+| 4  |   Before you launch a goroutine, know when it will stop    |
+| 5  |                 Avoid package level state                  |
+| 6  |                     Simplicity matters                     |
+| 7  | Write tests to lock in the behaviour of your package’s API |
+| 8  |  If you think it’s slow, first prove it with a benchmark   |
+| 9  |                   Moderation is a virtue                   |
+└────┴────────────────────────────────────────────────────────────┘
 ```
 
 ![](doc/doc-images/slide-table.png)
@@ -137,6 +195,15 @@ data := [][]string{
 		{"DATA7", "DATA8", "DATA9"},
 		{"DATA10", "DATA11", "DATA12"},
 }
+
+┌────────┬────────┬────────┐
+├────────┼────────┼────────┤
+| DATA1  | DATA2  | DATA3  |
+| DATA4  | DATA5  | DATA6  |
+| DATA7  | DATA8  | DATA9  |
+| DATA10 | DATA11 | DATA12 |
+└────────┴────────┴────────┘
+你可以换掉table的空头部
 ```
 
 
