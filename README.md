@@ -41,7 +41,7 @@ tb, _ := table.SimpleTable(data, opt)
 fmt.Println(tb)
 ```
 
-- [Struct]: 	_example/struct-table.go "struct"
+- Struct
 
 ```go
 type structTable struct {
@@ -72,7 +72,7 @@ data := structTable{
 
 
 
-- [Map]: 	_example/map-table.go
+- Map
 
 ```go
 
@@ -121,7 +121,7 @@ data2 := map[string]interface{}{
 
 ![](doc/doc-images/map-table.png)
 
-- [StructSlice]: 	_example/structslice-table.go
+- StructSlice
 
 ```go
 type structSliceTable struct {
@@ -152,7 +152,7 @@ data := []structSliceTable{
 
 ![](doc/doc-images/structslide-table.png)
 
-- [Slice]: 	_example/slice-table.go
+- Slice
 
 ```go
 data := []string{
@@ -186,7 +186,7 @@ data := []string{
 
 ![](doc/doc-images/slide-table.png)
 
-- [Slide2D]: 	_example/slice2d-table.go
+- Slide2D
 
 ```go
 data := [][]string{
