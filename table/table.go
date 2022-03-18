@@ -2,15 +2,13 @@ package table
 
 import (
 	"errors"
-	"fmt"
-	"reflect"
-	"sort"
-
 	"github.com/guojia99/go-tables/table/utils"
+	"reflect"
 )
 
 type Option struct {
 	TransformContents []TransformContent
+	Contour           Contour
 	Align             Align
 }
 
@@ -24,8 +22,8 @@ type Table struct {
 	Footers RowCell
 }
 
-func (t *Table) Copy() Table {
-	newT := Table{
+func (t *Table) Copy() *Table {
+	newT := &Table{
 		Opt:     t.Opt,
 		Body:    make([]RowCell, len(t.Body)),
 		Headers: make(RowCell, len(t.Headers)),
@@ -37,7 +35,125 @@ func (t *Table) Copy() Table {
 	return newT
 }
 
-func (t *Table) TransformCover(in interface{}) interface{} {
+func (t Table) String() (out string) {
+	// Make a copy to avoid data confusion
+	tb := t.Copy()
+
+	// Get header\footer width parameter
+	var headerWidth, headerHeight []uint
+	tb.Headers, headerWidth, headerHeight = tb.coverCell(tb.Headers)
+	var footerWidth, footerHeight []uint
+	tb.Footers, footerWidth, footerHeight = tb.coverCell(tb.Footers)
+
+	// Get body width parameter
+	var (
+		bodyWidths  = make([][]uint, len(tb.Body))
+		bodyHeights = make([][]uint, len(tb.Body))
+	)
+	for idx := range tb.Body {
+		tb.Body[idx], bodyWidths[idx], bodyHeights[idx] = tb.coverCell(tb.Body[idx])
+	}
+
+	// Calculate Equilibrium Column Parameters
+	maxCol := len(headerWidth)
+	for _, bw := range bodyWidths {
+		maxCol = utils.Max(maxCol, len(bw))
+	}
+	var maxColWidth = make([]uint, maxCol)
+	for i := 0; i < maxCol; i++ {
+		if len(headerWidth) > i && maxColWidth[i] < headerWidth[i] {
+			maxColWidth[i] = headerWidth[i]
+		}
+		if len(footerWidth) > i && maxColWidth[i] < footerWidth[i] {
+			maxColWidth[i] = footerWidth[i]
+		}
+		for bIdx := range bodyWidths {
+			if len(bodyWidths[bIdx]) > i && maxColWidth[i] < bodyWidths[bIdx][i] {
+				maxColWidth[i] = bodyWidths[bIdx][i]
+			}
+		}
+	}
+
+	// Modify Cell parameters
+	for idx := range tb.Headers {
+		var saveWidth = maxColWidth[idx]
+		switch tb.Headers[idx].(type) {
+		case *MergeCell:
+			saveWidth = 0
+			vM := tb.Headers[idx].(*MergeCell)
+			for i := 0; i < int(vM.Column); i++ {
+				saveWidth += maxColWidth[i+idx]
+			}
+		}
+		tb.Headers[idx].SetWidth(saveWidth)
+		tb.Headers[idx].SetHeight(utils.UintMax(headerHeight...))
+	}
+	for idx := range tb.Footers {
+		var saveWidth = maxColWidth[idx]
+		switch tb.Footers[idx].(type) {
+		case *MergeCell:
+			saveWidth = 0
+			vM := tb.Footers[idx].(*MergeCell)
+			for i := 0; i < int(vM.Column); i++ {
+				saveWidth += maxColWidth[i+idx]
+			}
+		}
+		tb.Footers[idx].SetWidth(saveWidth)
+		tb.Footers[idx].SetHeight(utils.UintMax(footerHeight...))
+	}
+
+	// Reset line by line
+	for rowIdx := range tb.Body {
+		for colIdx := range tb.Body[rowIdx] {
+			var saveWidth = maxColWidth[colIdx]
+			switch tb.Body[rowIdx][colIdx].(type) {
+			case *MergeCell:
+				saveWidth = 0
+				vM := tb.Body[rowIdx][colIdx].(*MergeCell)
+				for i := 0; i < int(vM.Column); i++ {
+					saveWidth += maxColWidth[i+colIdx]
+				}
+			}
+			tb.Body[rowIdx][colIdx].SetWidth(saveWidth)
+			tb.Body[rowIdx][colIdx].SetHeight(utils.UintMax(bodyHeights[rowIdx]...))
+		}
+	}
+
+	// Serialized output
+	out += tb.Opt.Contour.Handler(maxColWidth)
+	out += serializedRowCell(tb.Headers, tb.Opt.Contour)
+	out += tb.Opt.Contour.Intersection(maxColWidth)
+	for _, val := range tb.Body {
+		out += serializedRowCell(val, tb.Opt.Contour)
+	}
+	out += tb.Opt.Contour.Footer(maxColWidth)
+	out += serializedRowCell(tb.Footers, tb.Opt.Contour)
+	return
+}
+
+func serializedRowCell(r RowCell, c Contour) (out string) {
+	var heights []uint
+	var data [][]string
+	for _, val := range r {
+		heights = append(heights, val.Height())
+		data = append(data, val.Lines())
+	}
+	maxHeight := utils.UintMax(heights...)
+	for idx := 0; idx < int(maxHeight); idx++ {
+		out += c.L
+		for valIdx, val := range data {
+			out += val[idx]
+			if valIdx < len(data)-1 {
+				out += c.CH
+				continue
+			}
+			out += c.R + "\n"
+		}
+	}
+	return
+}
+
+func (t *Table) transformCover(in interface{}) interface{} {
 	if len(t.Opt.TransformContents) == 0 {
 		return in
 	}
@@ -47,13 +163,11 @@ func (t *Table) TransformCover(in interface{}) interface{} {
 	return in
 }
 
-func (t Table) coverCell(in RowCell) (RowCell, []uint) {
-	ws := make([]uint, len(in))
-	var out RowCell
-	for idx, val := range in {
+func (t *Table) coverCell(in RowCell) (out RowCell, ws, hs []uint) {
+	for _, val := range in {
 		switch val.(type) {
-		case InterfaceCell:
-			vI := val.(InterfaceCell)
+		case *InterfaceCell:
+			vI := val.(*InterfaceCell)
 			var newAnyVal []interface{}
 			for i := range vI.AnyVal {
 				data := vI.AnyVal[i]
@@ -63,47 +177,39 @@ func (t Table) coverCell(in RowCell) (RowCell, []uint) {
 				newAnyVal = append(newAnyVal, data)
 			}
 			val = vI.ToBaseCell()
-		}
-		ws[idx] = val.Width()
-		out = append(out, val)
-	}
-	return out, ws
-}
+		case *MergeCell:
+			vM := val.(*MergeCell)
+			addW := make([]uint, vM.Column)
+			wc := vM.Width() % vM.Column
+			for idx := range addW {
+				addW[idx] = vM.Width() / vM.Column
+				if uint(idx) < wc {
+					addW[idx]++
+				}
+			}
 
-func (t *Table) String() string {
-	tb := t.Copy()
-	//var (
-	//	headerWidth []uint
-	//	footerWidth []uint
-	//)
-	//t.Headers, headerWidth = t.coverCell(t.Headers)
-	//t.Footers, footerWidth = t.coverCell(t.Footers)
-	//fmt.Println(headerWidth, footerWidth)
-	//fmt.Println(t.Headers, t.Footers)
-	for idx, bodyCell := range tb.Body {
-		bodyCell, bodyCellW := tb.coverCell(bodyCell)
-		sort.Slice(bodyCellW, func(i, j int) bool {
-			return bodyCellW[i] > bodyCellW[j]
-		})
-		if len(bodyCellW) == 0 {
+			addH := make([]uint, vM.Row)
+			hr := vM.Height() % vM.Row
+			for idx := range addH {
+				addH[idx] = vM.Height() / vM.Row
+				if uint(idx) < hr {
+					addH[idx]++
+				}
+			}
+
+			ws = append(ws, addW...)
+			hs = append(hs, addH...)
+			out = append(out, val)
 			continue
 		}
-		for _, val := range bodyCell {
-			val.SetWidth(bodyCellW[0])
-		}
-		tb.Body[idx] = bodyCell
+		ws = append(ws, val.Width())
+		hs = append(hs, val.Height())
+		out = append(out, val)
 	}
-
-	for _, val := range tb.Body {
-		for _, v := range val {
-			fmt.Println(v.Lines())
-		}
-	}
-
-	return ""
+	return
 }
 
-func SimpleTable(in interface{}, opt *Option) (Table, error) {
+func SimpleTable(in interface{}, opt *Option) (*Table, error) {
 	switch utils.ParsingType(in) {
 	case utils.Struct:
 		return structTable(in, opt)
@@ -118,11 +224,11 @@ func SimpleTable(in interface{}, opt *Option) (Table, error) {
 	case utils.Slice2D:
 		return slice2DTable(in, opt)
 	}
-	return Table{}, errors.New("the data body required to create a new table frame does not support this type")
+	return &Table{}, errors.New("the data body required to create a new table frame does not support this type")
 }
 
-func mapTable(in interface{}, opt *Option) (Table, error) {
-	tb := Table{
+func mapTable(in interface{}, opt *Option) (*Table, error) {
+	tb := &Table{
 		Opt: opt,
 		Headers: RowCell{
 			NewInterfaceCell(opt.Align, "key"),
@@ -142,8 +248,8 @@ func mapTable(in interface{}, opt *Option) (Table, error) {
 	return tb, nil
 }
 
-func mapSliceTable(in interface{}, opt *Option) (Table, error) {
-	tb := Table{Opt: opt}
+func mapSliceTable(in interface{}, opt *Option) (*Table, error) {
+	tb := &Table{Opt: opt}
 	inValue := reflect.ValueOf(in)
 	keys := inValue.MapKeys()
 	maxIdx := 0
@@ -174,12 +280,12 @@ func mapSliceTable(in interface{}, opt *Option) (Table, error) {
 	return tb, nil
 }
 
-func structTable(in interface{}, opt *Option) (Table, error) {
+func structTable(in interface{}, opt *Option) (*Table, error) {
 	names, value, err := structToRows(in, opt.Align)
 	if err != nil {
-		return Table{}, err
+		return &Table{}, err
 	}
-	tb := Table{
+	tb := &Table{
 		Opt: opt,
 		Headers: RowCell{
 			NewInterfaceCell(opt.Align, "#"),
@@ -192,8 +298,8 @@ func structTable(in interface{}, opt *Option) (Table, error) {
 	return tb, nil
 }
 
-func structSliceTable(in interface{}, opt *Option) (Table, error) {
-	tb := Table{Opt: opt}
+func structSliceTable(in interface{}, opt *Option) (*Table, error) {
+	tb := &Table{Opt: opt}
 	inValue := reflect.ValueOf(in)
 	structs := make([]interface{}, inValue.Len())
 	for i := 0; i < inValue.Len(); i++ {
@@ -202,7 +308,7 @@ func structSliceTable(in interface{}, opt *Option) (Table, error) {
 	for idx, s := range structs {
 		names, value, err := structToRows(s, opt.Align)
 		if err != nil {
-			return Table{}, err
+			return &Table{}, err
 		}
 		if idx == 0 {
 			tb.Headers = append(tb.Headers, names...)
@@ -212,12 +318,12 @@ func structSliceTable(in interface{}, opt *Option) (Table, error) {
 	return tb, nil
 }
 
-func sliceTable(in interface{}, opt *Option) (Table, error) {
-	tb := Table{Opt: opt}
+func sliceTable(in interface{}, opt *Option) (*Table, error) {
+	tb := &Table{Opt: opt}
 	tb.Headers = append(tb.Headers, NewInterfaceCell(opt.Align, "No"), NewInterfaceCell(opt.Align, "value"))
 	row, err := sliceToRow(in, opt.Align)
 	if err != nil {
-		return Table{}, err
+		return &Table{}, err
 	}
 	for idx, val := range row {
 		tb.Body = append(tb.Body, RowCell{
@@ -228,8 +334,8 @@ func sliceTable(in interface{}, opt *Option) (Table, error) {
 	return tb, nil
 }
 
-func slice2DTable(in interface{}, opt *Option) (Table, error) {
-	tb := Table{Opt: opt}
+func slice2DTable(in interface{}, opt *Option) (*Table, error) {
+	tb := &Table{Opt: opt}
 	inValue := reflect.ValueOf(in)
 	tb.Body = make([]RowCell, inValue.Len())
 
@@ -238,7 +344,7 @@ func slice2DTable(in interface{}, opt *Option) (Table, error) {
 		slice := inValue.Index(i).Interface()
 		tb.Body[i], err = sliceToRow(slice, opt.Align)
 		if err != nil {
-			return Table{}, err
+			return &Table{}, err
 		}
 	}
 	return tb, nil

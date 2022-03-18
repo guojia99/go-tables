@@ -70,6 +70,7 @@ func (a Align) Repeat(in string, count uint) string {
 	}
 
 	repeatLen := int(count) - w
+
 	if repeatLen < 0 {
 		return in[:int(w)-3] + "..."
 	}
@@ -133,6 +134,7 @@ func NewBaseCell(ag Align, in []string) *BaseCell {
 	c.Add(in...)
 	return c
 }
+
 func (c *BaseCell) Width() uint      { return c.w }
 func (c *BaseCell) Height() uint     { return c.h }
 func (c *BaseCell) SetWidth(w uint)  { c.w = w }
@@ -154,7 +156,9 @@ func (c *BaseCell) Line(idx uint) string {
 	}
 	return c.align.Repeat(c.val[idx], c.w)
 }
-func (c *BaseCell) Lines() (out []string) { return c.align.Repeats(c.val, c.w) }
+func (c *BaseCell) Lines() (out []string) {
+	return c.align.Repeats(c.val, c.w)
+}
 
 type EmptyCell struct{ *BaseCell }
 
@@ -180,9 +184,14 @@ type InterfaceCell struct {
 	AnyVal []interface{}
 }
 
-func (c InterfaceCell) Add(in ...string) { c.AnyVal = append(c.AnyVal, in) }
+func (c *InterfaceCell) Add(in ...string) {
+	for _, val := range in {
+		c.AnyVal = append(c.AnyVal, val)
+	}
+	c.BaseCell.h = uint(len(c.AnyVal))
+}
 
-func (c InterfaceCell) ToBaseCell() *BaseCell {
+func (c *InterfaceCell) ToBaseCell() *BaseCell {
 	var val []string
 	for _, v := range c.AnyVal {
 		val = append(val, fmt.Sprintf("%v", v))
@@ -190,13 +199,13 @@ func (c InterfaceCell) ToBaseCell() *BaseCell {
 	return NewBaseCell(c.align, val)
 }
 
-func NewInterfaceCell(ag Align, data ...interface{}) InterfaceCell {
+func NewInterfaceCell(ag Align, data ...interface{}) *InterfaceCell {
 	val := make([]interface{}, len(data))
 	for idx := range data {
 		val[idx] = data[idx]
 	}
 
-	c := InterfaceCell{
+	c := &InterfaceCell{
 		BaseCell: &BaseCell{
 			align: ag,
 		},
@@ -206,22 +215,22 @@ func NewInterfaceCell(ag Align, data ...interface{}) InterfaceCell {
 }
 
 type MergeCell struct {
-	BaseCell
+	*BaseCell
 	Row    uint
 	Column uint
 }
 
-func NewMergeCells(cells [][]Cell) MergeCell {
+func NewMergeCells(cells [][]Cell) *MergeCell {
 	if len(cells) == 0 {
-		return MergeCell{}
+		return &MergeCell{}
 	}
 	if len(cells[0]) == 0 {
-		return MergeCell{}
+		return &MergeCell{}
 	}
-	return MergeCell{
+	return &MergeCell{
 		Row:    uint(len(cells)),
 		Column: uint(len(cells[0])),
-		BaseCell: BaseCell{
+		BaseCell: &BaseCell{
 			val:   cells[0][0].Lines(),
 			align: cells[0][0].Align(),
 		},

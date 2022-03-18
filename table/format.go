@@ -6,6 +6,16 @@ import (
 
 var (
 	// DefaultContour default
+	/*
+		┌──────────┬──────┐
+		|    A     |  B   |
+		├──────────┼──────┤
+		|   112    |  2   |
+		|    1     | 223  |
+		|    4     |  5   |
+		| 72312312 | 2328 |
+		└──────────┴──────┘
+	*/
 	DefaultContour = Contour{
 		T: "─", R: "|",
 		L: "|", D: "─",
@@ -13,10 +23,18 @@ var (
 		DL: "└", DR: "┘",
 		TI: "┬", DI: "┴",
 		LI: "├", RI: "┤",
-		I: "┼", CH: "|", CV: "-",
+		I: "┼", CH: "|", CV: "─",
 	}
 
 	// EmptyContour is empty
+	/*
+	     A        B
+
+	    112       2
+	     1       223
+	     4        5
+	  72312312   2328
+	*/
 	EmptyContour = Contour{
 		T: " ", R: " ",
 		L: " ", D: " ",
@@ -28,6 +46,16 @@ var (
 	}
 
 	// MariaDBContour like to mysql
+	/*
+		+----------+------+
+		|    A     |  B   |
+		+----------+------+
+		|   112    |  2   |
+		|    1     | 223  |
+		|    4     |  5   |
+		| 72312312 | 2328 |
+		+----------+------+
+	*/
 	MariaDBContour = Contour{
 		T: "-", R: "|",
 		L: "|", D: "-",
@@ -69,26 +97,39 @@ type Contour struct {
 	I, CH, CV string
 }
 
-func (c Contour) Handler(sw []int) string {
+// Handler output : ┌──────────┬──────┐
+func (c Contour) Handler(sw []uint) string {
 	out := c.TL
 	for idx, s := range sw {
-		out += strings.Repeat(c.T, s)
+		out += strings.Repeat(c.T, int(s))
 		if idx < len(sw)-1 {
 			out += c.TI
 		}
 	}
 	out += c.TR
-	return out
+	return out + "\n"
 }
 
-func (c Contour) Footer(sw []int) string {
+func (c Contour) Intersection(sw []uint) string {
+	out := c.LI
+	for idx, s := range sw {
+		out += strings.Repeat(c.CV, int(s))
+		if idx < len(sw)-1 {
+			out += c.I
+		}
+	}
+	out += c.RI
+	return out + "\n"
+}
+
+func (c Contour) Footer(sw []uint) string {
 	out := c.DL
 	for idx, s := range sw {
-		out += strings.Repeat(c.D, s)
+		out += strings.Repeat(c.D, int(s))
 		if idx < len(sw)-1 {
 			out += c.DI
 		}
 	}
 	out += c.DR
-	return out
+	return out + "\n"
 }
