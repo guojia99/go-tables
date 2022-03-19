@@ -236,3 +236,27 @@ func NewMergeCells(cells [][]Cell) *MergeCell {
 		},
 	}
 }
+
+type RowCell []Cell
+
+func serializedRowCell(r RowCell, c Contour) (out string) {
+	var heights []uint
+	var data [][]string
+	for _, val := range r {
+		heights = append(heights, val.Height())
+		data = append(data, val.Lines())
+	}
+	maxHeight := utils.UintMax(heights...)
+	for idx := 0; idx < int(maxHeight); idx++ {
+		out += c.L
+		for valIdx, val := range data {
+			out += val[idx]
+			if valIdx < len(data)-1 {
+				out += c.CH
+				continue
+			}
+			out += c.R + "\n"
+		}
+	}
+	return
+}
