@@ -240,6 +240,9 @@ func NewMergeCells(cells [][]Cell) *MergeCell {
 type RowCell []Cell
 
 func serializedRowCell(r RowCell, c Contour) (out string) {
+	if len(r) == 0 {
+		return
+	}
 	var heights []uint
 	var data [][]string
 	for _, val := range r {

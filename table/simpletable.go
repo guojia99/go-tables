@@ -22,45 +22,38 @@ func SimpleTable(in interface{}, opt *Option) (*Table, error) {
 	case utils.Slice2D:
 		return slice2DTable(in, opt)
 	}
-	return &Table{}, errors.New("the data body required to create a new table frame does not support this type")
+	return nil, errors.New("the data body required to create a new table frame does not support this type")
 }
 
 func mapTable(in interface{}, opt *Option) (*Table, error) {
-	tb := &Table{
-		Opt: opt,
-		Headers: RowCell{
-			NewInterfaceCell(opt.Align, "key"),
-			NewInterfaceCell(opt.Align, "value"),
-		},
-	}
+	tb := NewTable(opt).SetHeaders("key", "value")
+
 	inValue := reflect.ValueOf(in)
 	if inValue.Kind() == reflect.Ptr {
 		inValue = inValue.Elem()
 	}
 	for _, val := range inValue.MapKeys() {
-		tb.Body = append(tb.Body, RowCell{
-			NewInterfaceCell(opt.Align, utils.ValueInterface(val)),
-			NewInterfaceCell(opt.Align, utils.ValueInterface(inValue.MapIndex(val))),
-		})
+		tb.AddBody(utils.ValueInterface(val), utils.ValueInterface(inValue.MapIndex(val)))
 	}
 	return tb, nil
 }
 
 func mapSliceTable(in interface{}, opt *Option) (*Table, error) {
-	tb := &Table{Opt: opt}
+	tb := NewTable(opt)
 	inValue := reflect.ValueOf(in)
 	keys := inValue.MapKeys()
 	maxIdx := 0
 
 	m := make([]reflect.Value, len(keys))
 	for idx, key := range keys {
-		tb.Headers = append(tb.Headers, NewInterfaceCell(opt.Align, utils.ValueInterface(key)))
+		tb.AddHeaders(utils.ValueInterface(key))
 		v := inValue.MapIndex(key)
 		if l := v.Len(); maxIdx < l {
 			maxIdx = l
 		}
 		m[idx] = v
 	}
+
 	tb.Body = make([]RowCell, len(keys))
 	for idx := range tb.Body {
 		tb.Body[idx] = make(RowCell, maxIdx)
@@ -81,23 +74,17 @@ func mapSliceTable(in interface{}, opt *Option) (*Table, error) {
 func structTable(in interface{}, opt *Option) (*Table, error) {
 	names, value, err := structToRows(in, opt.Align)
 	if err != nil {
-		return &Table{}, err
+		return nil, err
 	}
-	tb := &Table{
-		Opt: opt,
-		Headers: RowCell{
-			NewInterfaceCell(opt.Align, "#"),
-			NewInterfaceCell(opt.Align, "value"),
-		},
-	}
+	tb := NewTable(opt).SetHeaders("#", "value")
 	for idx := range names {
-		tb.Body = append(tb.Body, RowCell{names[idx], value[idx]})
+		tb.AddBodyRow(RowCell{names[idx], value[idx]})
 	}
 	return tb, nil
 }
 
 func structSliceTable(in interface{}, opt *Option) (*Table, error) {
-	tb := &Table{Opt: opt}
+	tb := NewTable(opt)
 	inValue := reflect.ValueOf(in)
 	structs := make([]interface{}, inValue.Len())
 	for i := 0; i < inValue.Len(); i++ {
@@ -109,31 +96,27 @@ func structSliceTable(in interface{}, opt *Option) (*Table, error) {
 			return &Table{}, err
 		}
 		if idx == 0 {
-			tb.Headers = append(tb.Headers, names...)
+			tb.SetHeadersRow(names)
 		}
-		tb.Body = append(tb.Body, value)
+		tb.AddBodyRow(value)
 	}
 	return tb, nil
 }
 
 func sliceTable(in interface{}, opt *Option) (*Table, error) {
-	tb := &Table{Opt: opt}
-	tb.Headers = append(tb.Headers, NewInterfaceCell(opt.Align, "No"), NewInterfaceCell(opt.Align, "value"))
+	tb := NewTable(opt).AddHeaders("No", "value")
 	row, err := sliceToRow(in, opt.Align)
 	if err != nil {
 		return &Table{}, err
 	}
 	for idx, val := range row {
-		tb.Body = append(tb.Body, RowCell{
-			NewInterfaceCell(opt.Align, idx),
-			val,
-		})
+		tb.AddBody(idx, val)
 	}
 	return tb, nil
 }
 
 func slice2DTable(in interface{}, opt *Option) (*Table, error) {
-	tb := &Table{Opt: opt}
+	tb := NewTable(opt)
 	inValue := reflect.ValueOf(in)
 	tb.Body = make([]RowCell, inValue.Len())
 

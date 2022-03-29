@@ -1,33 +1,49 @@
 package table
 
 import (
-	"github.com/guojia99/go-tables/table/utils"
+	"errors"
 	"image"
+
+	"github.com/guojia99/go-tables/table/utils"
 )
 
-type Option struct {
-	TransformContents []TransformContent
-	Contour           Contour
-	Align             Align
+type tableInterface interface {
+	// Copy - 拷贝一个新的table，与原有的table互不干扰
+	//      - Copy a new table without interfering with the original table
+	Copy() *Table
+	// String - 序列化输出
+	//        - Serialized output
+	String() string
+	// AddHeaders - 添加头的数据
+	//  		  - Add header data
+	AddHeaders(...interface{}) *Table
+	// SetHeaders - 替换头部
+	//            - replace header
+	SetHeaders(...interface{}) *Table
+	// SetHeadersRow - 替换头部
+	//               - RowCell replace header
+	SetHeadersRow(RowCell) *Table
+	// AddBody - 添加一行的数据
+	//    	   - Add a row of data
+	AddBody(...interface{}) *Table
+	// AddBodyRow - 添加一行的数据
+	//    	   - Add a RowCell of data
+	AddBodyRow(RowCell) *Table
+	// SetBody - 设置某行body的数据
+	//  	   - Set the data of a row body
+	SetBody(int, ...interface{}) *Table
+	// GetCellAt - 获取某行某列的数据，如果不存在返回 EmptyCell
+	//  		 - Get the data of a certain row and a certain column, if it does not exist, return EmptyCell
+	GetCellAt(image.Point) (Cell, error)
+	// SetCellAt - 替换某行某列的数据
+	// 			 - Replace the data of a certain row and a certain column
+	SetCellAt(image.Point, Cell) error
 }
 
-type tableInterface interface {
-	// Copy 拷贝一个新的table，互不干扰
-	Copy() *Table
-	// String 序列化输出
-	String() string
-	// AddHeaders 添加头的数据
-	AddHeaders(...interface{})
-	// AddRow 添加一行的数据
-	AddRow(...interface{})
-	// AddRowCell 用指定的数据进行添加一行
-	AddRowCell(RowCell)
-	// GetCellAt 获取某行某列的数据，如果不存在返回 EmptyCell
-	GetCellAt(image.Point) Cell
-	// SetCellAt 替换某行某列的数据，若超出，则扩容
-	SetCellAt(Cell, image.Point)
-	// MergeCells 合并某些单元格,注意只会保留最左上角的单元格数据
-	MergeCells([]image.Point) error
+type Option struct {
+	Align             Align
+	Contour           Contour
+	TransformContents []TransformContent
 }
 
 type Table struct {
@@ -36,6 +52,15 @@ type Table struct {
 	Headers RowCell
 	Body    []RowCell
 	Footers RowCell
+}
+
+func NewTable(opt *Option) *Table {
+	return &Table{
+		Opt:     opt,
+		Headers: RowCell{},
+		Body:    []RowCell{},
+		Footers: RowCell{},
+	}
 }
 
 func (t *Table) Copy() *Table {
@@ -51,7 +76,7 @@ func (t *Table) Copy() *Table {
 	return newT
 }
 
-func (t Table) String() (out string) {
+func (t *Table) String() (out string) {
 	// Make a copy to avoid data confusion
 	tb := t.Copy()
 
@@ -137,14 +162,91 @@ func (t Table) String() (out string) {
 
 	// Serialized output
 	out += tb.Opt.Contour.Handler(maxColWidth)
-	out += serializedRowCell(tb.Headers, tb.Opt.Contour)
-	out += tb.Opt.Contour.Intersection(maxColWidth)
+	headerStr := serializedRowCell(tb.Headers, tb.Opt.Contour)
+	if headerStr != "" {
+		out += headerStr
+		out += tb.Opt.Contour.Intersection(maxColWidth)
+	}
+
 	for _, val := range tb.Body {
 		out += serializedRowCell(val, tb.Opt.Contour)
 	}
 	out += tb.Opt.Contour.Footer(maxColWidth)
 	out += serializedRowCell(tb.Footers, tb.Opt.Contour)
 	return
+}
+
+func (t *Table) AddHeaders(in ...interface{}) *Table {
+	for _, val := range in {
+		t.Headers = append(t.Headers, NewInterfaceCell(t.Opt.Align, val))
+	}
+	return t
+}
+
+func (t *Table) SetHeaders(in ...interface{}) *Table {
+	var newRows RowCell
+	for _, val := range in {
+		newRows = append(newRows, NewInterfaceCell(t.Opt.Align, val))
+	}
+	t.Headers = newRows
+	return t
+}
+
+func (t *Table) SetHeadersRow(r RowCell) *Table {
+	t.Headers = r
+	return t
+}
+
+func (t *Table) AddBody(in ...interface{}) *Table {
+	var newRows RowCell
+	for _, val := range in {
+		newRows = append(newRows, NewInterfaceCell(t.Opt.Align, val))
+	}
+	t.Body = append(t.Body, newRows)
+	return t
+}
+
+func (t *Table) AddBodyRow(r RowCell) *Table {
+	t.Body = append(t.Body, r)
+	return t
+}
+
+func (t *Table) SetBody(idx int, in ...interface{}) *Table {
+	if idx >= len(t.Body) {
+		return t
+	}
+	var newRows RowCell
+	for _, val := range in {
+		newRows = append(newRows, NewInterfaceCell(t.Opt.Align, val))
+	}
+	t.Body[idx] = newRows
+	return t
+}
+
+func (t *Table) GetCellAt(p image.Point) (Cell, error) {
+	if p.X >= len(t.Body) {
+		return nil, errors.New("`row` line out of range")
+	}
+	if p.Y >= len(t.Body[p.X]) {
+		return nil, errors.New("`col` line out of range")
+	}
+	return t.Body[p.X][p.Y], nil
+}
+
+func (t *Table) SetCellAt(p image.Point, c Cell) error {
+	switch c.(type) {
+	case MergeCell:
+		return errors.New("cell can not merge cell")
+	}
+
+	if p.X >= len(t.Body) {
+		return errors.New("`row` line out of range")
+	}
+	if p.Y >= len(t.Body[p.X]) {
+		return errors.New("`col` line out of range")
+	}
+	t.Body[p.X][p.Y] = c
+	return nil
 }
 
 func (t *Table) transformCover(in interface{}) interface{} {
@@ -191,14 +293,10 @@ func (t *Table) coverCell(in RowCell) (out RowCell, ws, hs []uint) {
 				}
 			}
 
-			ws = append(ws, addW...)
-			hs = append(hs, addH...)
-			out = append(out, val)
+			ws, hs, out = append(ws, addW...), append(hs, addH...), append(out, val)
 			continue
 		}
-		ws = append(ws, val.Width())
-		hs = append(hs, val.Height())
-		out = append(out, val)
+		ws, hs, out = append(ws, val.Width()), append(hs, val.Height()), append(out, val)
 	}
 	return
 }

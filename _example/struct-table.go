@@ -5,16 +5,14 @@ import (
 	"github.com/guojia99/go-tables/table"
 )
 
-type structTable struct {
-	Str    string
-	Val    string `table:"value"`
-	Num    int    `json:"number"`
-	NoUse  string `json:"-"`
-	NoUse2 string `table:"-"`
-}
-
 func structTable1() {
-	data := structTable{
+	data := struct {
+		Str    string
+		Val    string `table:"value"`
+		Num    int    `json:"number"`
+		NoUse  string `json:"-"`
+		NoUse2 string `table:"-"`
+	}{
 		Str:    "value",
 		Val:    "val",
 		Num:    111,

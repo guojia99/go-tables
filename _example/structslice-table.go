@@ -5,16 +5,14 @@ import (
 	"github.com/guojia99/go-tables/table"
 )
 
-type structSliceTable struct {
-	Str    string
-	Val    string `table:"value"`
-	Num    int    `json:"number"`
-	NoUse  string `json:"-"`
-	NoUse2 string `table:"-"`
-}
-
 func structSliceTable1() {
-	data := []structSliceTable{
+	data := []struct {
+		Str    string
+		Val    string `table:"value"`
+		Num    int    `json:"number"`
+		NoUse  string `json:"-"`
+		NoUse2 string `table:"-"`
+	}{
 		{"data1", "val1", 1, "no1", "no2"},
 		{"data2", "val2", 2, "no2", "no3"},
 		{"data3", "val3", 3, "no3", "no4"},
