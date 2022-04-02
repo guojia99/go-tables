@@ -1,34 +1,33 @@
 # go-tables 
 
-### 1、about GO-TABLES
+### 1、关于GO-TABLES
 
-> - Table out command line table output tool
+> - Table Out 命令行表格输出工具
 >
->   - A library for command line output of nice looking tables
->   - Supports different input table formats
->   - Support header customization
->   - Support beautification color, custom format color, time serialization [ development]
->   - Support custom sorting, paging, screening [development]
+>   - 一个用于命令行输出美观的表格的库
+>   - 支持不同的输入表格式
+>   - 支持表头自定义
+>   - 支持美化颜色、自定义格式颜色、时间序列化【开发中】
+>   - 支持自定义排序、分页、筛查 【开发中】
 >
 
-### 2、quick application
+### 2、快速使用
 
 > ```bash
 > go get -u -d github.com/guojia99/go-tables/table
 > ```
 
-- The following 6 types structures are currently supported for output
+- 目前支持以下五种数据结构输出
 
 > ```
 > Struct                  struct{}
 > Map                     map[interface{}]interface{}
-> MapSlice                []map[interface{}]interface{}
 > StructSlice             []struct{}
 > Slice                   []interface{}
 > Slice2D                 [][]interface{}
 > ```
 
-You can directly output your original data by calling the method quickly
+你可以通过快速调用的方法，直接输出你原有的数据
 
 ```go
 var opt = &table.Option{
@@ -39,7 +38,7 @@ tb, _ := table.SimpleTable(data, opt)
 fmt.Println(tb)
 ```
 
-- ##### Struct
+- Struct
 
 ```go
 type structTable struct {
@@ -73,7 +72,7 @@ fmt.Println(tb)
 
 
 
-- ##### Map
+- Map
 
 ```go
 data := map[string]string{
@@ -127,7 +126,7 @@ fmt.Println(tb)
 
 ![](doc/doc-images/map-table.png)
 
-- ##### StructSlice
+- StructSlice
 
 ```go
 type structSliceTable struct {
@@ -161,7 +160,7 @@ fmt.Println(tb)
 
 ![](doc/doc-images/structslide-table.png)
 
-- ##### Slice
+- Slice
 
 ```go
 data := []string{
@@ -198,7 +197,7 @@ fmt.Println(tb)
 
 ![](doc/doc-images/slide-table.png)
 
-- ##### Slide2D
+- Slide2D
 
 ```go
 data := [][]string{
@@ -218,6 +217,7 @@ fmt.Println(tb)
 | DATA7  | DATA8  | DATA9  |
 | DATA10 | DATA11 | DATA12 |
 └────────┴────────┴────────┘
+你可以换掉table的空头部
 ```
 
 
@@ -226,6 +226,18 @@ fmt.Println(tb)
 
 
 
-----
 
-# development ...
+
+### 3、表头与拓展列 [开发中]
+
+- 默认表头
+- 自定义表头
+- 拓展列
+- 合并单元格
+
+### 4、序列化 [开发中]
+
+- 颜色
+- 自定义一个颜色序列化器
+- 使用时间序列化器
+
