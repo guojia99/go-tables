@@ -1,6 +1,8 @@
 package utils
 
-import "reflect"
+import (
+	"reflect"
+)
 
 type Kind int
 
@@ -26,9 +28,15 @@ func ParsingType(in interface{}) Kind {
 		}
 		return Map
 	case reflect.Slice:
-		switch v.Type().Elem().Kind() {
+		p := v.Type().Elem()
+		switch p.Kind() {
 		case reflect.Struct:
 			return StructSlice
+		case reflect.Ptr:
+			if p.Elem().Kind() == reflect.Struct {
+				return StructSlice
+			}
+			return Slice
 		case reflect.Slice:
 			return Slice2D
 		}

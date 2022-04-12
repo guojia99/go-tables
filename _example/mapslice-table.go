@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/guojia99/go-tables/table"
 )
 

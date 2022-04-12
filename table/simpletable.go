@@ -88,7 +88,12 @@ func structSliceTable(in interface{}, opt *Option) (*Table, error) {
 	inValue := reflect.ValueOf(in)
 	structs := make([]interface{}, inValue.Len())
 	for i := 0; i < inValue.Len(); i++ {
-		structs[i] = inValue.Index(i).Interface()
+		data := inValue.Index(i)
+		if inValue.Index(i).Kind() == reflect.Ptr {
+			structs[i] = data.Elem().Interface()
+			continue
+		}
+		structs[i] = data.Interface()
 	}
 	for idx, s := range structs {
 		names, value, err := structToRows(s, opt.Align)

@@ -6,7 +6,7 @@ import (
 )
 
 func structSliceTable1() {
-	data := []struct {
+	data := []*struct {
 		Str    string
 		Val    string `table:"value"`
 		Num    int    `json:"number"`
@@ -23,7 +23,10 @@ func structSliceTable1() {
 		Contour: table.DefaultContour,
 		Align:   table.AlignCenter,
 	}
-	tb, _ := table.SimpleTable(data, opt)
+	tb, err := table.SimpleTable(data, opt)
+	if err != nil {
+		panic(err)
+	}
 	fmt.Println(tb)
 }
 
