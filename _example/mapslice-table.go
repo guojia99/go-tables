@@ -12,13 +12,15 @@ func mapSliceTable1() {
 		Align:   table.AlignCenter,
 	}
 	data := map[string][]string{
-		"key1": {"value1", "value11", "value12", "value13"},
-		"key2": {"value2", "value2", "value2", "value2"},
-		"key3": {"value3", "value3", "value3", "value3"},
-		"key4": {"value4", "value4", "value4", "value4"},
-		"key5": {"value5", "value4", "value4", "value4"},
-		"key6": {"value6", "value4", "value4", "value4"},
+		"key1": {"key1-v", "key1-v", "key1-v", "key1-v", "key1-v", "key1-v"},
+		"key2": {"key2-v2", "key2-v2", "key2-v2", "key2-v2"},
+		"key3": {"key3-v3", "key3-v3", "key3-v3", "key3-v3"},
+		"key4": {"key4-v4", "key4-v4", "key4-v4", "key4-v4"},
+		"key5": {"key5-v5", "key5-v4", "key5-v4", "key5-v4"},
+		"key6": {"key6-v6", "key6-v4", "key6-v4", "key6-v4"},
+		"key7": {"key7-v6", "key7-v4", "key7-v4"},
 	}
+	fmt.Println()
 	tb, _ := table.SimpleTable(data, opt)
 	fmt.Println(tb)
 }

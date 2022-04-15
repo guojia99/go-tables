@@ -2,6 +2,8 @@ package table
 
 import (
 	"errors"
+	"fmt"
+	"math"
 	"reflect"
 
 	"github.com/guojia99/go-tables/table/utils"
@@ -42,32 +44,39 @@ func mapSliceTable(in interface{}, opt *Option) (*Table, error) {
 	tb := NewTable(opt)
 	inValue := reflect.ValueOf(in)
 	keys := inValue.MapKeys()
-	maxIdx := 0
 
-	m := make([]reflect.Value, len(keys))
+	var (
+		maxIdx   float64 = 0
+		m                = make([]reflect.Value, len(keys))
+		keyNames         = make([]string, len(keys))
+	)
+
 	for idx, key := range keys {
-		tb.AddHeaders(utils.ValueInterface(key))
-		v := inValue.MapIndex(key)
-		if l := v.Len(); maxIdx < l {
-			maxIdx = l
-		}
-		m[idx] = v
+		keyInterface := utils.ValueInterface(key)
+		tb.AddHeaders(keyInterface)
+		KeyName := fmt.Sprintf("%s", keyInterface)
+		keyNames = append(keyNames, KeyName)
+
+		slice := inValue.MapIndex(key)
+		m[idx] = slice
+		maxIdx = math.Max(maxIdx, float64(slice.Len()))
 	}
 
-	tb.Body = make([]RowCell, len(keys))
+	tb.Body = make([]RowCell, int(maxIdx))
 	for idx := range tb.Body {
-		tb.Body[idx] = make(RowCell, maxIdx)
+		tb.Body[idx] = make(RowCell, len(keys))
 	}
 
 	for i, val := range m {
-		for j := 0; j < maxIdx; j++ {
+		for j := 0; j < int(maxIdx); j++ {
 			if j >= val.Len() {
-				tb.Body[i][j] = NewEmptyCell(0, 1)
+				tb.Body[j][i] = NewEmptyCell(0, 1)
 				continue
 			}
-			tb.Body[i][j] = NewInterfaceCell(opt.Align, utils.ValueInterface(val.Index(j)))
+			tb.Body[j][i] = NewInterfaceCell(opt.Align, utils.ValueInterface(val.Index(j)))
 		}
 	}
+
 	return tb, nil
 }
 

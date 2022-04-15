@@ -38,8 +38,9 @@ package table
 
 import (
 	"fmt"
-	"github.com/guojia99/go-tables/table/utils"
 	"strings"
+
+	"github.com/guojia99/go-tables/table/utils"
 )
 
 type Align int

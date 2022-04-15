@@ -39,7 +39,7 @@ tb, _ := table.SimpleTable(data, opt)
 fmt.Println(tb)
 ```
 
-- ##### Struct
+- ##### Struct to table
 
 ```go
 type structTable struct {
@@ -73,7 +73,7 @@ fmt.Println(tb)
 
 
 
-- ##### Map
+- ##### Map to table
 
 ```go
 data := map[string]string{
@@ -127,7 +127,37 @@ fmt.Println(tb)
 
 ![](doc/doc-images/map-table.png)
 
-- ##### StructSlice
+- ##### map slice to table
+
+```go
+data := map[string][]string{
+		"key1": {"key1-v", "key1-v", "key1-v", "key1-v", "key1-v", "key1-v"},
+		"key2": {"key2-v2", "key2-v2", "key2-v2", "key2-v2"},
+		"key3": {"key3-v3", "key3-v3", "key3-v3", "key3-v3"},
+		"key4": {"key4-v4", "key4-v4", "key4-v4", "key4-v4"},
+		"key5": {"key5-v5", "key5-v4", "key5-v4", "key5-v4"},
+		"key6": {"key6-v6", "key6-v4", "key6-v4", "key6-v4"},
+		"key7": {"key7-v6", "key7-v4", "key7-v4"},
+}
+tb, _ := table.SimpleTable(data, opt)
+fmt.Println(tb)
+
+# out put:
+┌─────────┬─────────┬────────┬─────────┬─────────┬─────────┬─────────┐
+|  key6   |  key7   |  key1  |  key2   |  key3   |  key4   |  key5   |
+├─────────┼─────────┼────────┼─────────┼─────────┼─────────┼─────────┤
+| key6-v6 | key7-v6 | key1-v | key2-v2 | key3-v3 | key4-v4 | key5-v5 |
+| key6-v4 | key7-v4 | key1-v | key2-v2 | key3-v3 | key4-v4 | key5-v4 |
+| key6-v4 | key7-v4 | key1-v | key2-v2 | key3-v3 | key4-v4 | key5-v4 |
+| key6-v4 |         | key1-v | key2-v2 | key3-v3 | key4-v4 | key5-v4 |
+|         |         | key1-v |         |         |         |         |
+|         |         | key1-v |         |         |         |         |
+└─────────┴─────────┴────────┴─────────┴─────────┴─────────┴─────────┘
+```
+
+![](doc/doc-images/mapslice-table.png)
+
+- ##### Struct Slice to table
 
 ```go
 type structSliceTable struct {
@@ -161,7 +191,7 @@ fmt.Println(tb)
 
 ![](doc/doc-images/structslide-table.png)
 
-- ##### Slice
+- ##### Slice to table
 
 ```go
 data := []string{
@@ -198,7 +228,7 @@ fmt.Println(tb)
 
 ![](doc/doc-images/slide-table.png)
 
-- ##### Slide2D
+- ##### Slide2D to table
 
 ```go
 data := [][]string{
@@ -223,6 +253,10 @@ fmt.Println(tb)
 
 
 ![](doc/doc-images/slide2D-table.png)
+
+
+
+- ##### 
 
 
 
