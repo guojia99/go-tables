@@ -2,9 +2,8 @@ package table
 
 import (
 	"errors"
-	"image"
-
 	"github.com/guojia99/go-tables/table/utils"
+	"image"
 )
 
 type tableInterface interface {
@@ -38,6 +37,15 @@ type tableInterface interface {
 	// SetCellAt - 替换某行某列的数据
 	// 			 - Replace the data of a certain row and a certain column
 	SetCellAt(image.Point, Cell) error
+	// Sort - 依据某列进行排序
+	//      - Sort by a column
+	Sort(column int, less func(i, j int) bool) *Table
+	// Search - 查询某个cell是否存在， 依据自己的判断条件
+	//        - Query whether a cell exists， according to your own judgment
+	Search(eq interface{}, str string) (Cell, error)
+	// Page - 分页
+	//      - paginated
+	Page(limit, offset int) *Table
 }
 
 type Option struct {
@@ -78,21 +86,23 @@ func (t *Table) Copy() *Table {
 
 func (t *Table) String() (out string) {
 	// Make a copy to avoid data confusion
-	tb := t.Copy()
+	tx := t.Copy().expendID()
 
-	// Get header\footer width parameter
-	var headerWidth, headerHeight []uint
-	tb.Headers, headerWidth, headerHeight = tb.coverCell(tb.Headers)
-	var footerWidth, footerHeight []uint
-	tb.Footers, footerWidth, footerHeight = tb.coverCell(tb.Footers)
+	var (
+		bodyWidths  = make([][]uint, len(tx.Body))
+		bodyHeights = make([][]uint, len(tx.Body))
+
+		headerWidth, headerHeight []uint
+		footerWidth, footerHeight []uint
+	)
+
+	// Get header \ footer width parameter
+	tx.Headers, headerWidth, headerHeight = tx.coverCell(tx.Headers)
+	tx.Footers, footerWidth, footerHeight = tx.coverCell(tx.Footers)
 
 	// Get body width parameter
-	var (
-		bodyWidths  = make([][]uint, len(tb.Body))
-		bodyHeights = make([][]uint, len(tb.Body))
-	)
-	for idx := range tb.Body {
-		tb.Body[idx], bodyWidths[idx], bodyHeights[idx] = tb.coverCell(tb.Body[idx])
+	for idx := range tx.Body {
+		tx.Body[idx], bodyWidths[idx], bodyHeights[idx] = tx.coverCell(tx.Body[idx])
 	}
 
 	// Calculate Equilibrium Column Parameters
@@ -116,63 +126,64 @@ func (t *Table) String() (out string) {
 	}
 
 	// Modify Cell parameters
-	for idx := range tb.Headers {
+	// TODO: Extract the function to handle this repetitive process
+	for idx := range tx.Headers {
 		var saveWidth = maxColWidth[idx]
-		switch tb.Headers[idx].(type) {
+		switch tx.Headers[idx].(type) {
 		case *MergeCell:
 			saveWidth = 0
-			vM := tb.Headers[idx].(*MergeCell)
+			vM := tx.Headers[idx].(*MergeCell)
 			for i := 0; i < int(vM.Column); i++ {
 				saveWidth += maxColWidth[i+idx]
 			}
 		}
-		tb.Headers[idx].SetWidth(saveWidth)
-		tb.Headers[idx].SetHeight(utils.UintMax(headerHeight...))
+		tx.Headers[idx].SetWidth(saveWidth)
+		tx.Headers[idx].SetHeight(utils.UintMax(headerHeight...))
 	}
-	for idx := range tb.Footers {
+	for idx := range tx.Footers {
 		var saveWidth = maxColWidth[idx]
-		switch tb.Footers[idx].(type) {
+		switch tx.Footers[idx].(type) {
 		case *MergeCell:
 			saveWidth = 0
-			vM := tb.Footers[idx].(*MergeCell)
+			vM := tx.Footers[idx].(*MergeCell)
 			for i := 0; i < int(vM.Column); i++ {
 				saveWidth += maxColWidth[i+idx]
 			}
 		}
-		tb.Footers[idx].SetWidth(saveWidth)
-		tb.Footers[idx].SetHeight(utils.UintMax(footerHeight...))
+		tx.Footers[idx].SetWidth(saveWidth)
+		tx.Footers[idx].SetHeight(utils.UintMax(footerHeight...))
 	}
 
 	// Reset line by line
-	for rowIdx := range tb.Body {
-		for colIdx := range tb.Body[rowIdx] {
+	for rowIdx := range tx.Body {
+		for colIdx := range tx.Body[rowIdx] {
 			var saveWidth = maxColWidth[colIdx]
-			switch tb.Body[rowIdx][colIdx].(type) {
+			switch tx.Body[rowIdx][colIdx].(type) {
 			case *MergeCell:
 				saveWidth = 0
-				vM := tb.Body[rowIdx][colIdx].(*MergeCell)
+				vM := tx.Body[rowIdx][colIdx].(*MergeCell)
 				for i := 0; i < int(vM.Column); i++ {
 					saveWidth += maxColWidth[i+colIdx]
 				}
 			}
-			tb.Body[rowIdx][colIdx].SetWidth(saveWidth)
-			tb.Body[rowIdx][colIdx].SetHeight(utils.UintMax(bodyHeights[rowIdx]...))
+			tx.Body[rowIdx][colIdx].SetWidth(saveWidth)
+			tx.Body[rowIdx][colIdx].SetHeight(utils.UintMax(bodyHeights[rowIdx]...))
 		}
 	}
 
 	// Serialized output
-	out += tb.Opt.Contour.Handler(maxColWidth)
-	headerStr := serializedRowCell(tb.Headers, tb.Opt.Contour)
+	out += tx.Opt.Contour.Handler(maxColWidth)
+	headerStr := serializedRowCell(tx.Headers, tx.Opt.Contour)
 	if headerStr != "" {
 		out += headerStr
-		out += tb.Opt.Contour.Intersection(maxColWidth)
+		out += tx.Opt.Contour.Intersection(maxColWidth)
 	}
 
-	for _, val := range tb.Body {
-		out += serializedRowCell(val, tb.Opt.Contour)
+	for _, val := range tx.Body {
+		out += serializedRowCell(val, tx.Opt.Contour)
 	}
-	out += tb.Opt.Contour.Footer(maxColWidth)
-	out += serializedRowCell(tb.Footers, tb.Opt.Contour)
+	out += tx.Opt.Contour.Footer(maxColWidth)
+	out += serializedRowCell(tx.Footers, tx.Opt.Contour)
 	return
 }
 
@@ -200,6 +211,11 @@ func (t *Table) SetHeadersRow(r RowCell) *Table {
 func (t *Table) AddBody(in ...interface{}) *Table {
 	var newRows RowCell
 	for _, val := range in {
+		switch val.(type) {
+		case Cell:
+			newRows = append(newRows, val.(Cell))
+			continue
+		}
 		newRows = append(newRows, NewInterfaceCell(t.Opt.Align, val))
 	}
 	t.Body = append(t.Body, newRows)
@@ -236,7 +252,7 @@ func (t *Table) GetCellAt(p image.Point) (Cell, error) {
 func (t *Table) SetCellAt(p image.Point, c Cell) error {
 	switch c.(type) {
 	case MergeCell:
-		return errors.New("cell can not merge cell")
+		return errors.New("cell can not set merge cell")
 	}
 
 	if p.X >= len(t.Body) {
@@ -249,6 +265,11 @@ func (t *Table) SetCellAt(p image.Point, c Cell) error {
 	return nil
 }
 
+func (t *Table) Sort(column int, less func(i, j int) bool) *Table {
+	tx := t.Copy()
+	return tx
+}
+
 func (t *Table) transformCover(in interface{}) interface{} {
 	if len(t.Opt.TransformContents) == 0 {
 		return in
@@ -259,22 +280,29 @@ func (t *Table) transformCover(in interface{}) interface{} {
 	return in
 }
 
+func (t *Table) Search(eq interface{}, str string) (Cell, error) {
+	return nil, nil
+}
+
+func (t *Table) Page(limit, offset int) *Table {
+	tx := t.Copy()
+	return tx
+}
+
 func (t *Table) coverCell(in RowCell) (out RowCell, ws, hs []uint) {
 	for _, val := range in {
 		switch val.(type) {
 		case *InterfaceCell:
 			vI := val.(*InterfaceCell)
-			var newAnyVal []interface{}
 			for i := range vI.AnyVal {
 				data := vI.AnyVal[i]
-				for _, f := range t.Opt.TransformContents {
-					data = f(data)
-				}
-				newAnyVal = append(newAnyVal, data)
+				data = t.transformCover(data)
+				vI.AnyVal[i] = data
 			}
 			val = vI.ToBaseCell()
 		case *MergeCell:
 			vM := val.(*MergeCell)
+
 			addW := make([]uint, vM.Column)
 			wc := vM.Width() % vM.Column
 			for idx := range addW {
@@ -299,4 +327,12 @@ func (t *Table) coverCell(in RowCell) (out RowCell, ws, hs []uint) {
 		ws, hs, out = append(ws, val.Width()), append(hs, val.Height()), append(out, val)
 	}
 	return
+}
+
+func (t *Table) expendID() *Table {
+	t.Headers = append(RowCell{NewInterfaceCell(t.Opt.Align, "[ID]")}, t.Headers...)
+	for i := 0; i < len(t.Body); i++ {
+		t.Body[i] = append(RowCell{NewInterfaceCell(t.Opt.Align, i)}, t.Body[i]...)
+	}
+	return t
 }

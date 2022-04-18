@@ -85,9 +85,9 @@ func structTable(in interface{}, opt *Option) (*Table, error) {
 	if err != nil {
 		return nil, err
 	}
-	tb := NewTable(opt).SetHeaders("#", "value")
+	tb := NewTable(opt).SetHeaders("value")
 	for idx := range names {
-		tb.AddBodyRow(RowCell{names[idx], value[idx]})
+		tb.AddBodyRow(RowCell{value[idx]})
 	}
 	return tb, nil
 }
@@ -118,13 +118,13 @@ func structSliceTable(in interface{}, opt *Option) (*Table, error) {
 }
 
 func sliceTable(in interface{}, opt *Option) (*Table, error) {
-	tb := NewTable(opt).AddHeaders("No", "value")
+	tb := NewTable(opt).AddHeaders("value")
 	row, err := sliceToRow(in, opt.Align)
 	if err != nil {
 		return &Table{}, err
 	}
-	for idx, val := range row {
-		tb.AddBody(idx, val)
+	for _, val := range row {
+		tb.AddBody(val)
 	}
 	return tb, nil
 }

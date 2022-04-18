@@ -244,12 +244,16 @@ func serializedRowCell(r RowCell, c Contour) (out string) {
 	if len(r) == 0 {
 		return
 	}
-	var heights []uint
-	var data [][]string
+
+	var (
+		heights []uint
+		data    [][]string
+	)
 	for _, val := range r {
 		heights = append(heights, val.Height())
 		data = append(data, val.Lines())
 	}
+
 	maxHeight := utils.UintMax(heights...)
 	for idx := 0; idx < int(maxHeight); idx++ {
 		out += c.L
