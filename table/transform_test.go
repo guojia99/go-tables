@@ -85,11 +85,10 @@ func TestDefaultTransformContentByTime(t *testing.T) {
 		{
 			name: "month after",
 			args: args{
-				in: time.Now().AddDate(0, 1, 0),
+				in: time.Now().AddDate(0, 2, 0),
 			},
-			want: "1 month after",
+			want: "2 month after",
 		},
-
 		{
 			name: "year ago",
 			args: args{
