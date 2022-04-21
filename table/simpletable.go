@@ -85,9 +85,9 @@ func structTable(in interface{}, opt *Option) (*Table, error) {
 	if err != nil {
 		return nil, err
 	}
-	tb := NewTable(opt).SetHeaders("value")
+	tb := NewTable(opt).SetHeaders("key", "value")
 	for idx := range names {
-		tb.AddBodyRow(RowCell{value[idx]})
+		tb.AddBodyRow(RowCell{names[idx], value[idx]})
 	}
 	return tb, nil
 }
