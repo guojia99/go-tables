@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"runtime"
+	"strings"
 )
 
 func SwellFont(in string) string { return fmt.Sprintf("%s%s%s", " ", in, " ") }
@@ -11,6 +12,7 @@ func SwellFont(in string) string { return fmt.Sprintf("%s%s%s", " ", in, " ") }
 var noWinCodeExpr = regexp.MustCompile(`\033\[[\d;?]+m`)
 
 func RealLength(in string) int {
+	in = strings.Trim(in, "\000")
 	if runtime.GOOS != `windows` {
 		return stringLength([]rune(noWinCodeExpr.ReplaceAllString(in, "")))
 	}

@@ -64,10 +64,12 @@ func (a Align) Repeat(in string, count uint) string {
 	if in == "" {
 		return strings.Repeat(" ", int(count))
 	}
-
+	in = strings.Replace(in, " ", "", -1)
+	in = strings.Replace(in, "\n", "", -1)
+	in = strings.Replace(in, "\t", "", -1)
 	w := utils.RealLength(in)
 	if w < 3 && count > 3 {
-		return strings.Repeat(".", int(count))
+		return strings.Repeat(" ", int(count))
 	}
 
 	repeatLen := int(count) - w
