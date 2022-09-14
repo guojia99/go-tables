@@ -3,11 +3,21 @@ package table
 import (
 	"errors"
 	"fmt"
+	"log"
 	"math"
 	"reflect"
 
 	"github.com/guojia99/go-tables/table/utils"
 )
+
+func DefaultSimpleTable(in interface{}) *Table {
+	tb, err := SimpleTable(in, DefaultOption)
+	if err != nil {
+		log.Default().Println(err)
+		return nil
+	}
+	return tb
+}
 
 func SimpleTable(in interface{}, opt *Option) (*Table, error) {
 	switch utils.ParsingType(in) {

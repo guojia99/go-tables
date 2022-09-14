@@ -56,6 +56,12 @@ type Option struct {
 	TransformContents []TransformContent
 }
 
+var DefaultOption = &Option{
+	ExpendID: true,
+	Align:    AlignCenter,
+	Contour:  DefaultContour,
+}
+
 type Table struct {
 	Opt *Option
 	// val

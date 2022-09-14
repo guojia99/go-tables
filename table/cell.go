@@ -1,38 +1,50 @@
 /*
-	Align 内容方位
-	- 以 AlignLeft, AlignCenter, AlignTopLeft 为例,表示在单元格内容分别是置于左侧，和顶部左侧
-		= eg. 当单元格高度为4, 实际内容高度为2, 以 AlignLeft 则居左为
-			[            ]
-			[ align 2    ]
-			[ align 3    ]
-			[            ]
-		= AlignCenter
-			[            ]
-			[   align 2  ]
-			[   align 3  ]
-			[            ]
-		= AlignTopLeft
-			[   align 2  ]
-			[   align 3  ]
-			[            ]
-			[            ]
-	- Align.Repeat(in string, w int) string 函数
-		= 仅支持针对left, center, rights三个方位的拓展, in 是输入, w是实际所需长度, 若
-	Cell 单元格
-	- 目前实现了以下几种 Cell, 均基于BaseCell
-		= BaseCell
-		- 基本单元格
-		- 只有最基本的功能
+Align 内容方位
+  - 以 AlignLeft, AlignCenter, AlignTopLeft 为例,表示在单元格内容分别是置于左侧，和顶部左侧
+    = eg. 当单元格高度为4, 实际内容高度为2, 以 AlignLeft 则居左为
+    [            ]
+    [ align 2    ]
+    [ align 3    ]
+    [            ]
+    = AlignCenter
+    [            ]
+    [   align 2  ]
+    [   align 3  ]
+    [            ]
+    = AlignTopLeft
+    [   align 2  ]
+    [   align 3  ]
+    [            ]
+    [            ]
+  - Align.Repeat(in string, w int) string 函数
+    = 仅支持针对left, center, rights三个方位的拓展, in 是输入, w是实际所需长度, 若
 
-		- EmptyCell
-			- 空单元格
-			- 没有内容的单元格
-		- InterfaceCell
-			- 空接口单元格
-			- 用于接纳任意类型的单元格
-		- MergeCell
-			- 合并单元格
-			- 可以跨多行多列的单元格
+Cell 单元格
+
+  - 目前实现了以下几种 Cell, 均基于BaseCell
+    = BaseCell
+
+  - 基本单元格
+
+  - 只有最基本的功能
+
+  - EmptyCell
+
+  - 空单元格
+
+  - 没有内容的单元格
+
+  - InterfaceCell
+
+  - 空接口单元格
+
+  - 用于接纳任意类型的单元格
+
+  - MergeCell
+
+  - 合并单元格
+
+  - 可以跨多行多列的单元格
 */
 package table
 
@@ -68,9 +80,10 @@ func (a Align) Repeat(in string, count uint) string {
 	in = strings.Replace(in, "\n", "", -1)
 	in = strings.Replace(in, "\t", "", -1)
 	w := utils.RealLength(in)
-	if w < 3 && count > 3 {
-		return strings.Repeat(" ", int(count))
-	}
+
+	//if w < 3 && count > 3 {
+	//	return strings.Repeat(" ", int(count))
+	//}
 
 	repeatLen := int(count) - w
 

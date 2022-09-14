@@ -7,8 +7,9 @@ import (
 
 func TestSimpleTable(t *testing.T) {
 	opt := &Option{
-		Align:   AlignCenter,
-		Contour: DefaultContour,
+		ExpendID: true,
+		Align:    AlignCenter,
+		Contour:  DefaultContour,
 	}
 	tests := []struct {
 		name    string
@@ -114,7 +115,7 @@ func TestSimpleTable(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := SimpleTable(tt.args, opt)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("SimpleTable() error = %v, wantErr %v", err, tt.wantErr)
+				t.Fatalf("SimpleTable() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			fmt.Println(got)
