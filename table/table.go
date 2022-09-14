@@ -2,8 +2,9 @@ package table
 
 import (
 	"errors"
-	"github.com/guojia99/go-tables/table/utils"
 	"image"
+
+	"github.com/guojia99/go-tables/table/utils"
 )
 
 type tableInterface interface {
@@ -49,6 +50,7 @@ type tableInterface interface {
 }
 
 type Option struct {
+	ExpendID          bool
 	Align             Align
 	Contour           Contour
 	TransformContents []TransformContent
@@ -86,7 +88,10 @@ func (t *Table) Copy() *Table {
 
 func (t *Table) String() (out string) {
 	// Make a copy to avoid data confusion
-	tx := t.Copy().expendID()
+	tx := t.Copy()
+	if t.Opt.ExpendID {
+		tx = tx.expendID()
+	}
 
 	var (
 		bodyWidths  = make([][]uint, len(tx.Body))
