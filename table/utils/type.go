@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"reflect"
 )
 
@@ -46,9 +47,14 @@ func ParsingType(in interface{}) Kind {
 }
 
 func ValueInterface(in reflect.Value) interface{} {
+	interfaceVal := in.Interface()
+	if stringer, ok := interfaceVal.(fmt.Stringer); ok {
+		return stringer.String()
+	}
+
 	switch in.Type().Kind() {
 	case reflect.Interface:
-		return in.Interface()
+		return interfaceVal
 	case reflect.Bool:
 		return in.Bool()
 	case reflect.String:
