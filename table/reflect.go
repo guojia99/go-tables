@@ -18,14 +18,13 @@ const (
 	None          TBKind = iota // other
 	IteratorSlice               // Iterator
 	CellSlice                   // [] Cell
-
-	String      // string
-	Struct      // struct{}
-	StructSlice // []struct{}
-	Slice       // []interface{}
-	Slice2D     // [][]interface{}
-	Map         // map[interface{}]interface{}
-	MapSlice    // map[interface{}][]interface{}
+	String                      // string
+	Struct                      // struct{}
+	StructSlice                 // []struct{}
+	Slice                       // []interface{}
+	Slice2D                     // [][]interface{}
+	Map                         // map[interface{}]interface{}
+	MapSlice                    // map[interface{}][]interface{}
 )
 
 func (t TBKind) String() string {
@@ -109,6 +108,11 @@ func parseString(in interface{}) (row []Cell, err error) {
 
 func parseStruct(in interface{}) (header, row []Cell, err error) {
 	inValue := reflect.ValueOf(in)
+	if !inValue.IsValid() {
+		err = errors.New("the content of the struct is not valid")
+		return
+	}
+
 	inType := inValue.Type()
 	if inValue.Kind() == reflect.Ptr {
 		inValue, inType = inValue.Elem(), inType.Elem()

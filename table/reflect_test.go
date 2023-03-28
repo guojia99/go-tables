@@ -142,30 +142,57 @@ func Test_parseString(t *testing.T) {
 }
 
 func Test_parseStruct(t *testing.T) {
-	type args struct {
-		in interface{}
+
+	type testStruct struct {
+		T1 string `json:"t1"`
+		T2 int    `json:"t2"`
+		T3 string `json:"-"`
 	}
 	tests := []struct {
 		name       string
-		args       args
+		in         interface{}
 		wantHeader []Cell
 		wantRow    []Cell
 		wantErr    bool
 	}{
-		// TODO: Add test cases.
+		{
+			name: "ok struct",
+			in: testStruct{
+				T1: "test1",
+				T2: 1,
+				T3: "test2",
+			},
+			wantHeader: []Cell{NewCell("t1"), NewCell("t2")},
+			wantRow:    []Cell{NewCell("test1"), NewCell(1)},
+			wantErr:    false,
+		},
+		{
+			name:       "nil struct",
+			in:         nil,
+			wantHeader: nil,
+			wantRow:    nil,
+			wantErr:    true,
+		},
+		{
+			name:       "error string input",
+			in:         "string",
+			wantHeader: nil,
+			wantRow:    nil,
+			wantErr:    true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotHeader, gotRow, err := parseStruct(tt.args.in)
+			gotHeader, gotRow, err := parseStruct(tt.in)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("parseStruct() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(gotHeader, tt.wantHeader) {
-				t.Errorf("parseStruct() gotHeader = %v, want %v", gotHeader, tt.wantHeader)
+				t.Errorf("parseStruct() gotHeader = %+v, want %+v", gotHeader, tt.wantHeader)
 			}
 			if !reflect.DeepEqual(gotRow, tt.wantRow) {
-				t.Errorf("parseStruct() gotRow = %v, want %v", gotRow, tt.wantRow)
+				t.Errorf("parseStruct() gotRow = %+v, want %+v", gotRow, tt.wantRow)
 			}
 		})
 	}

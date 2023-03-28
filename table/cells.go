@@ -34,8 +34,8 @@ type Cell interface {
 	fmt.Stringer
 	Add(...string)
 	Lines() []string
-	SetColor(color.Style) Cell
 	Color() color.Style
+	SetColor(color.Style) Cell
 	SetWordWrap(b bool) Cell
 }
 

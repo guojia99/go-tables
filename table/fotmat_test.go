@@ -97,3 +97,27 @@ func TestAlign_Repeat(t *testing.T) {
 		})
 	}
 }
+
+func Test_isHeadCapitalLetters(t *testing.T) {
+	type args struct {
+		in string
+	}
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{
+			name: "",
+			args: args{},
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := isHeadCapitalLetters(tt.args.in); got != tt.want {
+				t.Errorf("isHeadCapitalLetters() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

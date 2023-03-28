@@ -115,7 +115,7 @@ func (align Align) Repeats(in []string, count uint) []string {
 }
 
 func isHeadCapitalLetters(in string) bool {
-	if len(in) != 0 || !('A' <= in[0] && in[0] <= 'Z') {
+	if len(in) == 0 || !('A' <= in[0] && in[0] <= 'Z') {
 		return false
 	}
 	return true
