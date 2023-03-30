@@ -13,8 +13,9 @@ import (
 
 func valueInterface(in reflect.Value) interface{} {
 	interfaceVal := in.Interface()
-	if stringer, ok := interfaceVal.(fmt.Stringer); ok {
-		return stringer.String()
+	switch data := interfaceVal.(type) {
+	case fmt.Stringer:
+		return data.String()
 	}
 
 	switch in.Type().Kind() {
@@ -61,3 +62,15 @@ func structTagName(tag reflect.StructTag) (string, bool) {
 	}
 	return "", false
 }
+
+type (
+	sortMapKeyValues []sortMapKeyValue
+	sortMapKeyValue  struct {
+		key   Cell
+		value Cell
+	}
+)
+
+func (s sortMapKeyValues) Len() int           { return len(s) }
+func (s sortMapKeyValues) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
+func (s sortMapKeyValues) Less(i, j int) bool { return s[i].key.String() < s[j].key.String() }

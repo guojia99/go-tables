@@ -13,6 +13,8 @@ import (
 	"github.com/gookit/color"
 )
 
+type Cells []Cell
+
 func NewCell(in ...interface{}) Cell {
 	cell := &BaseCell{Val: make([]string, 0)}
 	for _, val := range in {

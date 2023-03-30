@@ -10,6 +10,7 @@ import (
 	`errors`
 	`fmt`
 	`reflect`
+	`sort`
 )
 
 type TBKind int
@@ -78,7 +79,7 @@ func parsingTypeTBKind(in interface{}) TBKind {
 		return Map
 	case reflect.Slice, reflect.Array:
 		// todo: list has use value check
-		// todo: 这里应该用取值的方式去拿到一个Cell实际接口才能确认到这个列表是一个[]Cell
+		// todo: 这里应该用取值的方式去拿到一个Cell实际接口才能确认到这个列表是一个Cells
 		if val.Type().Elem().String() == "table.Cell" {
 			return CellSlice
 		}
@@ -94,7 +95,7 @@ func parsingTypeTBKind(in interface{}) TBKind {
 	return None
 }
 
-func parseString(in interface{}) (row []Cell, err error) {
+func parseString(in interface{}) (row Cells, err error) {
 	switch in.(type) {
 	case string:
 		row = append(row, NewCell(in))
@@ -106,7 +107,9 @@ func parseString(in interface{}) (row []Cell, err error) {
 	return
 }
 
-func parseStruct(in interface{}) (header, row []Cell, err error) {
+// parseStruct
+// parse the structure, and use the key value content of the structure as the header and row as the return value.
+func parseStruct(in interface{}) (header, row Cells, err error) {
 	inValue := reflect.ValueOf(in)
 	if !inValue.IsValid() {
 		err = errors.New("the content of the struct is not valid")
@@ -134,8 +137,104 @@ func parseStruct(in interface{}) (header, row []Cell, err error) {
 	return
 }
 
-func parseStructSlice(in interface{}) (header []Cell, body []Cell, err error) { return nil, nil, nil }
-func parseSlice(in interface{}) ([]Cell, error)                               { return nil, nil }
-func parseSlice2D(in interface{}) ([][]Cell, error)                           { return nil, nil }
-func parseMap(in interface{}) (header []Cell, body [][]Cell, err error)       { return nil, nil, nil }
-func parseMapSlice(in interface{}) (header []Cell, body [][]Cell, err error)  { return nil, nil, nil }
+func parseStructSlice(in interface{}) (header Cells, body []Cells, err error) {
+	inValue := reflect.ValueOf(in)
+	if !inValue.IsValid() {
+		err = errors.New("the content of the struct slice is not valid")
+		return
+	}
+	if inValue.Kind() != reflect.Slice && inValue.Kind() != reflect.Array {
+		err = errors.New("the content is not a struct slice")
+		return
+	}
+
+	for i := 0; i < inValue.Len(); i++ {
+		ptr := inValue.Index(i)
+		if inValue.Index(i).Kind() == reflect.Ptr {
+			ptr = ptr.Elem()
+		}
+
+		h, b, parseStructErr := parseStruct(ptr.Interface())
+		if parseStructErr != nil {
+			err = fmt.Errorf("parse %d interface error: %s", i, parseStructErr)
+			return
+		}
+		header = h
+		body = append(body, b)
+	}
+	return
+}
+
+func parseSlice(in interface{}) (body Cells, err error) {
+	inValue := reflect.ValueOf(in)
+	if !inValue.IsValid() {
+		err = errors.New("the content of the slice is not valid")
+		return
+	}
+	if inValue.Kind() != reflect.Slice && inValue.Kind() != reflect.Array {
+		err = errors.New("the content is not a slice")
+		return
+	}
+
+	for i := 0; i < inValue.Len(); i++ {
+		val := reflect.ValueOf(inValue.Index(i).Interface())
+		if val.Kind() == reflect.Ptr {
+			val = val.Elem()
+		}
+		body = append(body, NewCell(valueInterface(val)))
+	}
+	return
+}
+
+func parseSlice2D(in interface{}) (body []Cells, err error) {
+	inValue := reflect.ValueOf(in)
+	if !inValue.IsValid() {
+		err = errors.New("the content of the slice 2D is not valid")
+		return
+	}
+	if inValue.Kind() != reflect.Slice && inValue.Kind() != reflect.Array {
+		err = errors.New("the content is not a slice 2D")
+		return
+	}
+
+	for i := 0; i < inValue.Len(); i++ {
+		slice, parseSliceErr := parseSlice(inValue.Index(i).Interface())
+		if err != nil {
+			err = fmt.Errorf("parse %d interface error: %s", i, parseSliceErr)
+			return
+		}
+		body = append(body, slice)
+	}
+	return
+}
+
+func parseMap(in interface{}) (header Cells, body Cells, err error) {
+	inValue := reflect.ValueOf(in)
+	if !inValue.IsValid() {
+		err = errors.New("the content of the map is not valid")
+		return
+	}
+	if inValue.Kind() != reflect.Map {
+		err = errors.New("the content is not a map")
+		return
+	}
+
+	keys := inValue.MapKeys()
+	var maps = make(sortMapKeyValues, len(keys))
+	for _, val := range inValue.MapKeys() {
+		maps = append(maps, sortMapKeyValue{
+			key:   NewCell(valueInterface(val)),
+			value: NewCell(valueInterface(inValue.MapIndex(val))),
+		})
+	}
+	sort.Sort(maps)
+	for _, val := range maps {
+		header = append(header, val.key)
+		body = append(body, val.value)
+	}
+	return
+}
+
+func parseMapSlice(in interface{}) (header Cells, body []Cells, err error) {
+	return nil, nil, nil
+}
