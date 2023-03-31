@@ -9,6 +9,7 @@ package table
 import (
 	`errors`
 	`fmt`
+	`math`
 	`reflect`
 	`sort`
 )
@@ -95,6 +96,7 @@ func parsingTypeTBKind(in interface{}) TBKind {
 	return None
 }
 
+// parseString parse by String
 func parseString(in interface{}) (row Cells, err error) {
 	switch in.(type) {
 	case string:
@@ -107,12 +109,11 @@ func parseString(in interface{}) (row Cells, err error) {
 	return
 }
 
-// parseStruct
+// parseStruct parse by Struct
 // parse the structure, and use the key value content of the structure as the header and row as the return value.
 func parseStruct(in interface{}) (header, row Cells, err error) {
-	inValue := reflect.ValueOf(in)
-	if !inValue.IsValid() {
-		err = errors.New("the content of the struct is not valid")
+	var inValue reflect.Value
+	if inValue, err = valueOf(in); err != nil {
 		return
 	}
 
@@ -137,12 +138,13 @@ func parseStruct(in interface{}) (header, row Cells, err error) {
 	return
 }
 
+// parseStructSlice parse by StructSlice
 func parseStructSlice(in interface{}) (header Cells, body []Cells, err error) {
-	inValue := reflect.ValueOf(in)
-	if !inValue.IsValid() {
-		err = errors.New("the content of the struct slice is not valid")
+	var inValue reflect.Value
+	if inValue, err = valueOf(in); err != nil {
 		return
 	}
+
 	if inValue.Kind() != reflect.Slice && inValue.Kind() != reflect.Array {
 		err = errors.New("the content is not a struct slice")
 		return
@@ -165,12 +167,13 @@ func parseStructSlice(in interface{}) (header Cells, body []Cells, err error) {
 	return
 }
 
+// parseSlice by Slice
 func parseSlice(in interface{}) (body Cells, err error) {
-	inValue := reflect.ValueOf(in)
-	if !inValue.IsValid() {
-		err = errors.New("the content of the slice is not valid")
+	var inValue reflect.Value
+	if inValue, err = valueOf(in); err != nil {
 		return
 	}
+
 	if inValue.Kind() != reflect.Slice && inValue.Kind() != reflect.Array {
 		err = errors.New("the content is not a slice")
 		return
@@ -186,12 +189,13 @@ func parseSlice(in interface{}) (body Cells, err error) {
 	return
 }
 
+// parseSlice2D by Slice2D
 func parseSlice2D(in interface{}) (body []Cells, err error) {
-	inValue := reflect.ValueOf(in)
-	if !inValue.IsValid() {
-		err = errors.New("the content of the slice 2D is not valid")
+	var inValue reflect.Value
+	if inValue, err = valueOf(in); err != nil {
 		return
 	}
+
 	if inValue.Kind() != reflect.Slice && inValue.Kind() != reflect.Array {
 		err = errors.New("the content is not a slice 2D")
 		return
@@ -208,12 +212,14 @@ func parseSlice2D(in interface{}) (body []Cells, err error) {
 	return
 }
 
+// parseMap by Map
+// this function sort by map key
 func parseMap(in interface{}) (header Cells, body Cells, err error) {
-	inValue := reflect.ValueOf(in)
-	if !inValue.IsValid() {
-		err = errors.New("the content of the map is not valid")
+	var inValue reflect.Value
+	if inValue, err = valueOf(in); err != nil {
 		return
 	}
+
 	if inValue.Kind() != reflect.Map {
 		err = errors.New("the content is not a map")
 		return
@@ -224,17 +230,61 @@ func parseMap(in interface{}) (header Cells, body Cells, err error) {
 	for _, val := range inValue.MapKeys() {
 		maps = append(maps, sortMapKeyValue{
 			key:   NewCell(valueInterface(val)),
-			value: NewCell(valueInterface(inValue.MapIndex(val))),
+			value: NewCell(valueInterface(inValue.MapIndex(val))), // set the cell
 		})
 	}
 	sort.Sort(maps)
 	for _, val := range maps {
 		header = append(header, val.key)
-		body = append(body, val.value)
+		body = append(body, val.value.(Cell))
 	}
 	return
 }
 
+// parseMapSlice by MapSlice
 func parseMapSlice(in interface{}) (header Cells, body []Cells, err error) {
-	return nil, nil, nil
+	var inValue reflect.Value
+	if inValue, err = valueOf(in); err != nil {
+		return
+	}
+
+	if inValue.Kind() != reflect.Map {
+		err = errors.New("the content is not a map")
+		return
+	}
+
+	maxIdx := 0.0
+	var maps = make(sortMapKeyValues, 0)
+	for _, key := range inValue.MapKeys() {
+		cells, parseSliceErr := parseSlice(inValue.MapIndex(key))
+		if parseSliceErr != nil {
+			err = fmt.Errorf("parse map slice by key %v error %s", key.Interface(), parseSliceErr)
+			return
+		}
+		maps = append(maps, sortMapKeyValue{
+			key:   NewCell(valueInterface(key)),
+			value: cells,
+		})
+		maxIdx = math.Max(maxIdx, float64(len(cells)))
+	}
+	sort.Sort(maps)
+
+	// the body and header content like:
+	// key1,  key2,  key3
+	// ------------------
+	// vKey1, vKey2, vKey3
+	// vKey1, vKey2, vKey3
+	// vKey1, -----, -----
+
+	body = make([]Cells, int(maxIdx)) // make the cols
+	for i := 0; i < int(maxIdx); i++ {
+		body[i] = make(Cells, len(maps)) // make the rows
+	}
+	for idx, m := range maps {
+		header = append(header, m.key)
+		for valIdx, val := range m.value.(Cells) {
+			body[valIdx][idx] = val
+		}
+	}
+	return
 }

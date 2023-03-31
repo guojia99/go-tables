@@ -54,7 +54,6 @@ func (c *BaseCell) String() (out string) {
 	}
 	return out
 }
-
 func (c *BaseCell) Lines() []string {
 	if c.WordWrap {
 		return c.Val
@@ -65,8 +64,13 @@ func (c *BaseCell) Lines() []string {
 	}
 	return []string{out}
 }
-
 func (c *BaseCell) Add(in ...string)                { c.Val = append(c.Val, in...) }
 func (c *BaseCell) SetColor(style color.Style) Cell { c.style = style; return c }
 func (c *BaseCell) Color() color.Style              { return c.style }
 func (c *BaseCell) SetWordWrap(b bool) Cell         { c.WordWrap = b; return c }
+
+type NilCell struct {
+	BaseCell
+}
+
+func NewEmptyCell() Cell { return &BaseCell{} }

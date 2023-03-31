@@ -7,6 +7,7 @@
 package table
 
 import (
+	`errors`
 	`fmt`
 	`reflect`
 )
@@ -63,11 +64,24 @@ func structTagName(tag reflect.StructTag) (string, bool) {
 	return "", false
 }
 
+func valueOf(in interface{}) (out reflect.Value, err error) {
+	switch in.(type) {
+	case reflect.Value:
+		out = in.(reflect.Value)
+	default:
+		out = reflect.ValueOf(in)
+	}
+	if !out.IsValid() {
+		err = errors.New("the content is not valid")
+	}
+	return
+}
+
 type (
 	sortMapKeyValues []sortMapKeyValue
 	sortMapKeyValue  struct {
 		key   Cell
-		value Cell
+		value interface{}
 	}
 )
 
