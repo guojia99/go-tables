@@ -7,7 +7,6 @@
 package table
 
 import (
-	`errors`
 	`fmt`
 	`reflect`
 )
@@ -72,7 +71,7 @@ func valueOf(in interface{}) (out reflect.Value, err error) {
 		out = reflect.ValueOf(in)
 	}
 	if !out.IsValid() {
-		err = errors.New("the content is not valid")
+		err = NotValidValue
 	}
 	return
 }

@@ -202,7 +202,7 @@ func Test_parseMapSlice(t *testing.T) {
 		name       string
 		in         interface{}
 		wantHeader Cells
-		wantBody   []Cells
+		wantBody   Cells2D
 		wantErr    bool
 	}{
 		{
@@ -215,10 +215,10 @@ func Test_parseMapSlice(t *testing.T) {
 			wantHeader: Cells{
 				NewCell("test1"), NewCell("test2"), NewCell("test3"),
 			},
-			wantBody: []Cells{
+			wantBody: Cells2D{
 				{NewCell("test1-value1"), NewCell("test2-value1"), NewCell("test3-value1")},
-				{NewCell("test1-value2"), nil, NewCell("test3-value2")},
-				{NewCell("test1-value3"), nil, NewCell("test3-value3")},
+				{NewCell("test1-value2"), NewEmptyCell(), NewCell("test3-value2")},
+				{NewCell("test1-value3"), NewEmptyCell(), NewCell("test3-value3")},
 			},
 			wantErr: false,
 		},
@@ -251,7 +251,7 @@ func Test_parseStructSlice(t *testing.T) {
 		name       string
 		in         interface{}
 		wantHeader Cells
-		wantBody   []Cells
+		wantBody   Cells2D
 		wantErr    bool
 	}{
 		{
@@ -262,7 +262,7 @@ func Test_parseStructSlice(t *testing.T) {
 				{T1: "", T2: 7, T3: "8"},
 			},
 			wantHeader: Cells{NewCell("t1"), NewCell("t2")},
-			wantBody: []Cells{
+			wantBody: Cells2D{
 				{NewCell("1"), NewCell("2")},
 				{NewCell("4"), NewCell("5")},
 				{NewCell(""), NewCell("7")},
@@ -322,7 +322,7 @@ func Test_parseSlice2D(t *testing.T) {
 	tests := []struct {
 		name     string
 		in       interface{}
-		wantBody []Cells
+		wantBody Cells2D
 		wantErr  bool
 	}{
 		{
@@ -331,7 +331,7 @@ func Test_parseSlice2D(t *testing.T) {
 				{1, 2, 3},
 				{3, 2, 1},
 			},
-			wantBody: []Cells{
+			wantBody: Cells2D{
 				{NewCell("1"), NewCell("2"), NewCell("3")},
 				{NewCell("3"), NewCell("2"), NewCell("1")},
 			},
@@ -344,10 +344,25 @@ func Test_parseSlice2D(t *testing.T) {
 				{4, 3, 2, 1},
 				{0, 1, 0, 2},
 			},
-			wantBody: []Cells{
+			wantBody: Cells2D{
 				{NewCell("1"), NewCell("2"), NewCell("3"), NewCell("4")},
 				{NewCell("4"), NewCell("3"), NewCell("2"), NewCell("1")},
 				{NewCell("0"), NewCell("1"), NewCell("0"), NewCell("2")},
+			},
+		},
+		{
+			name: "slide not neat",
+			in: [][]int{
+				{1, 2, 3},
+				{1, 2, 3, 4},
+				{1, 2},
+				{1, 2, 3},
+			},
+			wantBody: Cells2D{
+				{NewCell("1"), NewCell("2"), NewCell("3"), NewEmptyCell()},
+				{NewCell("1"), NewCell("2"), NewCell("3"), NewCell("4")},
+				{NewCell("1"), NewCell("2"), NewEmptyCell(), NewEmptyCell()},
+				{NewCell("1"), NewCell("2"), NewCell("3"), NewEmptyCell()},
 			},
 		},
 	}
@@ -359,7 +374,7 @@ func Test_parseSlice2D(t *testing.T) {
 				return
 			}
 			if !reflect.DeepEqual(gotBody, tt.wantBody) {
-				t.Errorf("parseSlice2D() gotBody = %v, want %v", gotBody, tt.wantBody)
+				t.Errorf("parseSlice2D() gotBody = %s, want %s", gotBody.String(), tt.wantBody.String())
 			}
 		})
 	}
@@ -391,10 +406,10 @@ func Test_parseMap(t *testing.T) {
 				return
 			}
 			if !reflect.DeepEqual(gotHeader, tt.wantHeader) {
-				t.Errorf("parseMap() gotHeader = %v, want %v", gotHeader, tt.wantHeader)
+				t.Errorf("parseMap() gotHeader = %s, want %s", gotHeader, tt.wantHeader)
 			}
 			if !reflect.DeepEqual(gotBody, tt.wantBody) {
-				t.Errorf("parseMap() gotBody = %v, want %v", gotBody, tt.wantBody)
+				t.Errorf("parseMap() gotBody = %s, want %s", gotBody, tt.wantBody)
 			}
 		})
 	}

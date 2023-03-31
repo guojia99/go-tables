@@ -5,3 +5,9 @@
  */
 
 package table
+
+import `errors`
+
+var (
+	NotValidValue = errors.New("the content is not valid")
+)

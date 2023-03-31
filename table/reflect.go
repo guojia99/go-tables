@@ -139,7 +139,7 @@ func parseStruct(in interface{}) (header, row Cells, err error) {
 }
 
 // parseStructSlice parse by StructSlice
-func parseStructSlice(in interface{}) (header Cells, body []Cells, err error) {
+func parseStructSlice(in interface{}) (header Cells, body Cells2D, err error) {
 	var inValue reflect.Value
 	if inValue, err = valueOf(in); err != nil {
 		return
@@ -190,7 +190,7 @@ func parseSlice(in interface{}) (body Cells, err error) {
 }
 
 // parseSlice2D by Slice2D
-func parseSlice2D(in interface{}) (body []Cells, err error) {
+func parseSlice2D(in interface{}) (body Cells2D, err error) {
 	var inValue reflect.Value
 	if inValue, err = valueOf(in); err != nil {
 		return
@@ -242,7 +242,7 @@ func parseMap(in interface{}) (header Cells, body Cells, err error) {
 }
 
 // parseMapSlice by MapSlice
-func parseMapSlice(in interface{}) (header Cells, body []Cells, err error) {
+func parseMapSlice(in interface{}) (header Cells, body Cells2D, err error) {
 	var inValue reflect.Value
 	if inValue, err = valueOf(in); err != nil {
 		return
@@ -276,14 +276,20 @@ func parseMapSlice(in interface{}) (header Cells, body []Cells, err error) {
 	// vKey1, vKey2, vKey3
 	// vKey1, -----, -----
 
-	body = make([]Cells, int(maxIdx)) // make the cols
+	body = make(Cells2D, int(maxIdx)) // make the cols
 	for i := 0; i < int(maxIdx); i++ {
 		body[i] = make(Cells, len(maps)) // make the rows
 	}
 	for idx, m := range maps {
 		header = append(header, m.key)
-		for valIdx, val := range m.value.(Cells) {
-			body[valIdx][idx] = val
+
+		thisCells := m.value.(Cells)
+		for i := 0; i < int(maxIdx); i++ {
+			if i < len(thisCells) {
+				body[i][idx] = thisCells[i]
+				continue
+			}
+			body[i][idx] = NewEmptyCell()
 		}
 	}
 	return

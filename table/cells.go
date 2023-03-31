@@ -15,6 +15,29 @@ import (
 
 type Cells []Cell
 
+func (c Cells) String() string {
+	out := ""
+	for idx, val := range c {
+		out += val.String()
+		if idx < len(c)-1 {
+			out += ","
+		}
+	}
+	return "[" + out + "]"
+}
+
+type Cells2D []Cells
+
+func (c Cells2D) String() string {
+	out := ""
+	for _, val := range c {
+		out += "\t" + val.String()
+	}
+	return "[\n" + out + "\n]"
+}
+
+func NewEmptyCell() Cell { return &BaseCell{} }
+
 func NewCell(in ...interface{}) Cell {
 	cell := &BaseCell{Val: make([]string, 0)}
 	for _, val := range in {
@@ -50,7 +73,7 @@ type BaseCell struct {
 func (c *BaseCell) String() (out string) {
 	for _, line := range c.Lines() {
 		// set colors
-		out += c.style.Sprintf("%s", line) + "\n"
+		out += c.style.Sprintf("%s", line)
 	}
 	return out
 }
@@ -68,9 +91,3 @@ func (c *BaseCell) Add(in ...string)                { c.Val = append(c.Val, in..
 func (c *BaseCell) SetColor(style color.Style) Cell { c.style = style; return c }
 func (c *BaseCell) Color() color.Style              { return c.style }
 func (c *BaseCell) SetWordWrap(b bool) Cell         { c.WordWrap = b; return c }
-
-type NilCell struct {
-	BaseCell
-}
-
-func NewEmptyCell() Cell { return &BaseCell{} }
