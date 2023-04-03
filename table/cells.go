@@ -83,7 +83,7 @@ func (c *BaseCell) Lines() []string {
 	}
 	var out = ""
 	for _, val := range c.Val {
-		out += val
+		out += c.style.Sprintf("%s", val)
 	}
 	return []string{out}
 }

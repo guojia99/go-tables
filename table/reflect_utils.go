@@ -48,17 +48,13 @@ func valueInterface(in reflect.Value) interface{} {
 func structTagName(tag reflect.StructTag) (string, bool) {
 	tableTag := tag.Get("table")
 	jsonTag := tag.Get("json")
-	yamlTag := tag.Get("yaml")
-	if jsonTag == "-" || tableTag == "-" {
-		return "", false
-	}
-	switch {
-	case tableTag != "":
-		return tableTag, true
-	case jsonTag != "":
-		return jsonTag, true
-	case yamlTag != "":
-		return yamlTag, true
+	if tableTag != "-" || jsonTag != "-" {
+		switch {
+		case tableTag != "":
+			return tableTag, true
+		case jsonTag != "":
+			return jsonTag, true
+		}
 	}
 	return "", false
 }

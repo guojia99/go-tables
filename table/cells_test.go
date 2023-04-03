@@ -77,3 +77,9 @@ func TestBaseCell_UpdateColor(t *testing.T) {
 		})
 	}
 }
+
+func TestBaseCell_String(t *testing.T) {
+	c := NewCell("1111")
+	c.SetColor(RedBgBlue)
+	fmt.Println(c)
+}

@@ -59,6 +59,8 @@ func parsingTypeTBKind(in interface{}) TBKind {
 	}
 	// check types
 	switch val.Interface().(type) {
+	case []Cell, Cells:
+		return CellSlice
 	case Iterator:
 		return IteratorSlice
 	case fmt.Stringer:
@@ -126,7 +128,7 @@ func parseStruct(in interface{}) (header, row Cells, err error) {
 		return
 	}
 
-	// find all has `json`、`table`、`yaml` tag filed to table cells
+	// find all has `json`、`table` tag filed to table cells
 	for n := 0; n < inValue.NumField(); n++ {
 		if filed := inType.Field(n); isHeadCapitalLetters(filed.Name) {
 			if baseName, ok := structTagName(filed.Tag); ok {
