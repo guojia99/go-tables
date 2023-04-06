@@ -1,26 +1,26 @@
 /*
- * Copyright (c) 2023 gizwits.com All rights reserved.
- * Created: 2023/4/3 下午6:51.
- * Author: guojia(zjguo@gizwits.com)
+ *  * Copyright (c) 2023 guojia99 All rights reserved.
+ *  * Created: 2023/4/3 下午7:09.
+ *  * Author: guojia(https://github.com/guojia99)
  */
 
-package table
+package main
 
 import (
 	`fmt`
 	`os`
 	`strings`
-	`testing`
 )
 
-const format = `
+func main() {
+	const format = `
 /*
  * Copyright (c) 2023 gizwits.com All rights reserved.
  * Created: 2023/4/3 下午6:20.
  * Author: guojia(zjguo@gizwits.com)
  */
 
-package xcolor
+package table
 
 import "github.com/gookit/color"
 
@@ -36,7 +36,6 @@ var (
 )
 `
 
-func TestUpdateColorNew(t *testing.T) {
 	FgsKey := []string{
 		"FgBlack", "FgRed", "FgGreen", "FgYellow", "FgBlue", "FgMagenta", "FgCyan", "FgWhite", "FgDefault", // basic
 		"FgDarkGray", "FgLightRed", "FgLightGreen", "FgLightYellow", "FgLightBlue", "FgLightMagenta", "FgLightCyan",
@@ -60,5 +59,6 @@ func TestUpdateColorNew(t *testing.T) {
 		}
 	}
 
-	_ = os.WriteFile("color.go", []byte(fmt.Sprintf(format, basicColorStr, mergeColorStr)), 0644)
+	_ = os.WriteFile("table/color_utils_tools.go", []byte(fmt.Sprintf(format, basicColorStr, mergeColorStr)), 0644)
+
 }
