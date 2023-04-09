@@ -7,9 +7,9 @@
 package main
 
 import (
-	`fmt`
-	`os`
-	`strings`
+	"fmt"
+	"os"
+	"strings"
 )
 
 func main() {
@@ -20,7 +20,7 @@ func main() {
  * Author: guojia(zjguo@gizwits.com)
  */
 
-package table
+package tables
 
 import "github.com/gookit/color"
 

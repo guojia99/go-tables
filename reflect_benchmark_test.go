@@ -1,15 +1,16 @@
 /*
- * Copyright (c) 2023 gizwits.com All rights reserved.
- * Created: 2023/3/31 下午4:24.
- * Author: guojia(zjguo@gizwits.com)
+ * Copyright (c) 2023 guojia99 All rights reserved.
+ * Created: 2023/4/9 下午10:27.
+ * Author:  guojia(https://github.com/guojia99)
  */
 
-package table
+package tables
 
 import (
-	`image/color`
-	`testing`
-	`time`
+	"github.com/guojia99/go-tables/mock"
+	"image/color"
+	"testing"
+	"time"
 )
 
 func BenchmarkParsingTypeTBKind(b *testing.B) {
@@ -54,6 +55,7 @@ func BenchmarkParsingTypeTBKind(b *testing.B) {
 	b.Run(Map.String(), func(b *testing.B) {
 		ts := map[string]string{
 			"1": "123", "2": "223", "3": "333",
+			"4": "123", "5": "223", "6": "333",
 		}
 		for i := 0; i < b.N; i++ {
 			parsingTypeTBKind(ts)
@@ -67,6 +69,57 @@ func BenchmarkParsingTypeTBKind(b *testing.B) {
 		}
 		for i := 0; i < b.N; i++ {
 			parsingTypeTBKind(ts)
+		}
+	})
+}
+
+func Benchmark_parseString(b *testing.B) {
+	b.Run("normal_string", func(b *testing.B) {
+		data := "abcdefghijklmn"
+		for i := 0; i < b.N; i++ {
+			_, _ = parseString(data)
+		}
+	})
+	b.Run("long_string", func(b *testing.B) {
+		b.StopTimer()
+		data := func() string {
+			out := ""
+			for i := 0; i < 10000; i++ {
+				out += "abc"
+			}
+			return out
+		}()
+		b.StartTimer()
+		for i := 0; i < b.N; i++ {
+			_, _ = parseString(data)
+		}
+	})
+}
+
+func Benchmark_parseStruct(b *testing.B) {
+	b.Run("not_struct", func(b *testing.B) {
+		data := "123"
+		for i := 0; i < b.N; i++ {
+			_, _, _ = parseStruct(data)
+		}
+	})
+
+	b.Run("normal_struct", func(b *testing.B) {
+		data := color.RGBA{
+			R: 128,
+			G: 128,
+			B: 128,
+			A: 128,
+		}
+		for i := 0; i < b.N; i++ {
+			_, _, _ = parseStruct(data)
+		}
+	})
+
+	b.Run("long_f_struct", func(b *testing.B) {
+		data := new(mock.TestStruct1)
+		for i := 0; i < b.N; i++ {
+			_, _, _ = parseStruct(data)
 		}
 	})
 }

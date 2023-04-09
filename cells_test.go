@@ -1,17 +1,17 @@
 /*
- *  * Copyright (c) 2023 guojia99 All rights reserved.
- *  * Created: 2023/2/26 下午5:22.
- *  * Author: guojia(https://github.com/guojia99)
+ * Copyright (c) 2023 guojia99 All rights reserved.
+ * Created: 2023/4/9 下午10:27.
+ * Author:  guojia(https://github.com/guojia99)
  */
 
-package table
+package tables
 
 import (
-	`fmt`
-	`testing`
-	`time`
+	"fmt"
+	"testing"
+	"time"
 
-	`github.com/gookit/color`
+	"github.com/gookit/color"
 )
 
 func TestNewCell(t *testing.T) {

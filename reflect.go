@@ -1,17 +1,17 @@
 /*
- *  * Copyright (c) 2023 guojia99 All rights reserved.
- *  * Created: 2023/2/26 下午5:22.
- *  * Author: guojia(https://github.com/guojia99)
+ * Copyright (c) 2023 guojia99 All rights reserved.
+ * Created: 2023/4/9 下午10:27.
+ * Author:  guojia(https://github.com/guojia99)
  */
 
-package table
+package tables
 
 import (
-	`errors`
-	`fmt`
-	`math`
-	`reflect`
-	`sort`
+	"errors"
+	"fmt"
+	"math"
+	"reflect"
+	"sort"
 )
 
 type TBKind int
@@ -31,24 +31,29 @@ const (
 
 func (t TBKind) String() string {
 	switch t {
+	case None:
+		return "none"
 	case IteratorSlice:
 		return "iterator"
-	case Struct:
-		return "struct"
-	case Map:
-		return "map"
 	case CellSlice:
 		return "cell slice"
-	case MapSlice:
-		return "map slice"
+	case String:
+		return "string"
+	case Struct:
+		return "struct"
 	case StructSlice:
 		return "struct slice"
 	case Slice:
 		return "slice"
 	case Slice2D:
 		return "slice 2D"
+	case Map:
+		return "map"
+	case MapSlice:
+		return "map slice"
+	default:
+		return "unknown"
 	}
-	return "unknown"
 }
 
 // parsingTypeTBKind judgment on whether the parsed data is legal and can be converted into tabular data
