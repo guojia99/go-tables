@@ -1,15 +1,15 @@
 /*
- * Copyright (c) 2023 gizwits.com All rights reserved.
+ * Copyright (c) 2023 guojia99@github.com All rights reserved.
  * Created: 2023/4/14 下午5:46.
- * Author: guojia(zjguo@gizwits.com)
+ * Author: guojia(guojia99@github.com)
  */
 
 package tables
 
 import (
-	`fmt`
-	`reflect`
-	`testing`
+	"fmt"
+	"reflect"
+	"testing"
 )
 
 func _testNewCells(start, length int) []Cells {
