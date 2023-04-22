@@ -175,7 +175,7 @@ func parseStructSlice(in interface{}) (header Cells, body Cells2D, err error) {
 }
 
 // parseSlice by Slice
-func parseSlice(in interface{}) (body Cells, err error) {
+func parseSlice(in interface{}) (row Cells, err error) {
 	var inValue reflect.Value
 	if inValue, err = valueOf(in); err != nil {
 		return
@@ -191,7 +191,7 @@ func parseSlice(in interface{}) (body Cells, err error) {
 		if val.Kind() == reflect.Ptr {
 			val = val.Elem()
 		}
-		body = append(body, NewCell(valueInterface(val)))
+		row = append(row, NewCell(valueInterface(val)))
 	}
 	return
 }

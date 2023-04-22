@@ -50,7 +50,6 @@ type Table interface {
 	Page(limit, offset int) (newTable Table)
 	SetIterator(iterator Iterator)
 
-	// Row CUDR
 	SetHeader(cells ...interface{})
 	SetFoots(cells ...interface{})
 	AtCell(address image.Point) (cell Cell)
@@ -60,7 +59,6 @@ type Table interface {
 	DeleteRow(typ RowType, row int) (err error)
 	ReadRow(typ RowType, row int) (cells []Cell, err error)
 
-	// Utils
 	Sort(col int, less func(i, j int) bool) (newTable Table)
 	Filter(col int, less func(interface{}) bool) (newTable Table)
 	SearchCell(eq interface{}, str string) (cell Cell, address image.Point, err error)

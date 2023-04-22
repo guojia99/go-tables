@@ -20,7 +20,7 @@ type table struct {
 	headers []Cells
 	footers []Cells
 
-	// datas
+	// body fields
 	iteratorIdx         int
 	iterator            Iterator
 	page, limit, offset int
