@@ -7,10 +7,11 @@
 package tables
 
 import (
-	"github.com/guojia99/go-tables/mock"
 	"image/color"
 	"testing"
 	"time"
+
+	"github.com/guojia99/go-tables/mock"
 )
 
 func BenchmarkParsingTypeTBKind(b *testing.B) {
@@ -117,9 +118,72 @@ func Benchmark_parseStruct(b *testing.B) {
 	})
 
 	b.Run("long_f_struct", func(b *testing.B) {
+		b.StopTimer()
 		data := new(mock.TestStruct1)
+		b.StartTimer()
 		for i := 0; i < b.N; i++ {
 			_, _, _ = parseStruct(data)
+		}
+	})
+}
+
+func Benchmark_parseStructSlice(b *testing.B) {
+	b.Run("normal_slice", func(b *testing.B) {
+		b.StopTimer()
+		var data []color.RGBA
+		for i := 0; i < 10; i++ {
+			data = append(data, color.RGBA{})
+		}
+		b.StartTimer()
+
+		for i := 0; i < b.N; i++ {
+			_, _, _ = parseStructSlice(data)
+		}
+	})
+
+	b.Run("long_slice", func(b *testing.B) {
+		b.StopTimer()
+		var data []color.RGBA
+		for i := 0; i < 10000; i++ {
+			data = append(data, color.RGBA{})
+		}
+		b.StartTimer()
+
+		for i := 0; i < b.N; i++ {
+			_, _, _ = parseStructSlice(data)
+		}
+	})
+
+	b.Run("long_struct", func(b *testing.B) {
+		b.StopTimer()
+		var data []mock.TestStruct1
+		for i := 0; i < 100; i++ {
+			data = append(data, mock.TestStruct1{})
+		}
+		b.StartTimer()
+		for i := 0; i < b.N; i++ {
+			_, _, _ = parseStructSlice(data)
+		}
+	})
+}
+
+func Benchmark_parseSlice(b *testing.B) {
+	b.Run("normal_slice", func(b *testing.B) {
+		b.StopTimer()
+		var data [100]int
+		b.StartTimer()
+
+		for i := 0; i < b.N; i++ {
+			_, _ = parseSlice(data)
+		}
+	})
+
+	b.Run("long_slice", func(b *testing.B) {
+		b.StopTimer()
+		var data [10000]int
+		b.StartTimer()
+		for i := 0; i < b.N; i++ {
+			_, _ = parseSlice(data)
 		}
 	})
 }

@@ -11,6 +11,7 @@ import (
 	"reflect"
 )
 
+// todo 这里要改动
 func valueInterface(in reflect.Value) interface{} {
 	interfaceVal := in.Interface()
 	switch data := interfaceVal.(type) {

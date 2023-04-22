@@ -6,44 +6,88 @@
 
 package tables
 
-type Iterator interface {
-	// Size the Iterator max length
-	Size() int
-	// First the idx set to 0
-	First()
-	// Last the idx set to size
-	Last()
-	// Next in the next row of the table.
-	Next() Cells
-	// Prev from the previous row of the table.
-	Prev() Cells
+func NewBaseIterator(data []Cells) Iterator {
+	limit := len(data)
+	if len(data) > 20 {
+		limit = 20
+	}
+	return &BaseIterator{data: data, info: IteratorInfo{Count: len(data), Page: 1, Limit: limit, Line: 0}}
 }
 
-func NewSimpleIterator(data []Cells) *SimpleIterator {
-	return &SimpleIterator{data: data, size: len(data)}
-}
+type (
+	IteratorInfo struct {
+		Count int
+		Page  int // start 0
+		Limit int // start 1
+		Line  int // start 0
+	}
 
-type SimpleIterator struct {
+	Iterator interface {
+		// GetInfo the current info data.
+		GetInfo() IteratorInfo
+		// GetContent the data from the current row to the beginning to one page.
+		GetContent() []Cells
+		// UpdateLimit the length of one page, the minimum is 1.
+		UpdateLimit(limit int) bool
+		// JumpPage jump to a page.
+		JumpPage(page int) ([]Cells, bool)
+		// PrevLine jump the current line to the previous line and return the new current line.
+		PrevLine() (Cells, bool)
+		// NextLine jump the current line to the next line and return the new current line.
+		NextLine() (Cells, bool)
+	}
+)
+
+type BaseIterator struct {
 	// the size is max len
-	size int
-	idx  int
+	info IteratorInfo
 	data []Cells
 }
 
-func (s *SimpleIterator) Size() int { return s.size }
-func (s *SimpleIterator) First()    { s.idx = 0 }
-func (s *SimpleIterator) Last()     { s.idx = s.size }
-func (s *SimpleIterator) Next() Cells {
-	if s.idx < s.size-1 {
-		s.idx += 1
-		return s.data[s.idx]
+func (s *BaseIterator) GetInfo() IteratorInfo { return s.info }
+
+func (s *BaseIterator) GetContent() []Cells {
+	// Locate to which page the current row is
+	maxPage := s.info.Count / s.info.Limit
+	if s.info.Page >= maxPage {
+		return s.data[s.info.Line:]
 	}
-	return nil
+	return s.data[s.info.Line : s.info.Line+s.info.Limit]
 }
-func (s *SimpleIterator) Prev() Cells {
-	if s.idx > 0 {
-		s.idx -= 1
-		return s.data[s.idx]
+
+func (s *BaseIterator) JumpPage(page int) ([]Cells, bool) {
+	// if cur page > max page
+	if page <= 0 || page > s.info.Count/s.info.Limit {
+		return s.GetContent(), false
 	}
-	return nil
+	s.info.Page = page
+	s.info.Line = page * s.info.Limit
+	return s.GetContent(), true
+}
+
+func (s *BaseIterator) UpdateLimit(limit int) bool {
+	if limit <= 0 || limit > s.info.Count {
+		return false
+	}
+	s.info.Limit = limit
+	s.info.Page = (s.info.Line / s.info.Limit) + 1 // ceil
+	return true
+}
+
+func (s *BaseIterator) PrevLine() (Cells, bool) {
+	if s.info.Line == 0 { // the line start 1
+		return nil, false
+	}
+	s.info.Line -= 1
+	s.info.Page = (s.info.Line / s.info.Limit) + 1 // ceil
+	return s.data[s.info.Line], true
+}
+
+func (s *BaseIterator) NextLine() (Cells, bool) {
+	if s.info.Line+1 > s.info.Count {
+		return nil, false
+	}
+	s.info.Line += 1
+	s.info.Page = (s.info.Line / s.info.Limit) + 1 // ceil
+	return s.data[s.info.Line], true
 }
