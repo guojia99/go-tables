@@ -8,71 +8,59 @@ package tables
 
 import (
 	"fmt"
+	"image"
 )
 
-func AnyTables(in interface{}) (Table, error) {
-	kind := parsingTypeTBKind(in)
-	if kind == None {
-		return nil, fmt.Errorf("the input data is none table")
-	}
+type RowType int
 
-	tb := &table{
-		headers: make([]Cells, 0),
-		footers: make([]Cells, 0),
-		body:    make([]Cells, 0),
-	}
+const (
+	Body RowType = iota
+	Headers
+	Foots
+)
 
-	switch kind {
-	case IteratorSlice:
-		tb.iterator = in.(Iterator)
-	case CellSlice:
-		tb.body = append(tb.body, in.([]Cell))
-	case String:
-		row, err := parseString(in)
-		if err != nil {
-			return nil, err
-		}
-		tb.body = append(tb.body, row)
-	case Struct:
-		header, row, err := parseStruct(in)
-		if err != nil {
-			return nil, err
-		}
-		tb.headers = append(tb.headers, header)
-		tb.body = append(tb.body, row)
-	case StructSlice:
-		header, body, err := parseStructSlice(in)
-		if err != nil {
-			return nil, err
-		}
-		tb.headers = append(tb.headers, header)
-		tb.body = append(tb.body, body...)
-	case Slice:
-		row, err := parseSlice(in)
-		if err != nil {
-			return nil, err
-		}
-		tb.body = append(tb.body, row)
-	case Slice2D:
-		body, err := parseSlice2D(in)
-		if err != nil {
-			return nil, err
-		}
-		tb.body = append(tb.body, body...)
-	case Map:
-		header, row, err := parseMap(in)
-		if err != nil {
-			return nil, err
-		}
-		tb.headers = append(tb.headers, header)
-		tb.body = append(tb.body, row)
-	case MapSlice:
-		header, body, err := parseMapSlice(in)
-		if err != nil {
-			return nil, err
-		}
-		tb.headers = append(tb.headers, header)
-		tb.body = append(tb.body, body...)
-	}
-	return tb, nil
+type Table interface {
+	fmt.Stringer
+
+	///*
+	//	Rect and SetRect
+	//	the rect is has cell numbers, for example:
+	//		[] [] [] []
+	//		[] [] [] []
+	//	the rect is image.Rectangle{Min: image.Point{0, 0}, Max: image.Point{4,2}}
+	//	the rect is table output all lines
+	//*/
+	//Rect() (rect image.Rectangle)
+
+	/*
+		SetColWidth and SetRowHeight
+		----------
+		|  |  |  | < row
+		|  |  |  |
+		----------
+		 ^ col
+		the SetColWidth can change the displayable width of all grids in this column,
+		similarly, SetRowHeight can change all heights of the column.
+		[!] but if you input the cols or rows has `-1` will change all columns or rows.
+	*/
+	SetColWidth(width int, cols ...int)
+	SetRowHeight(height int, rows ...int)
+
+	// Page and Iterator
+	Page(limit, offset int) (newTable Table)
+	SetIterator(iterator Iterator)
+
+	SetHeader(cells ...interface{})
+	SetFoots(cells ...interface{})
+	AtCell(address image.Point) (cell Cell)
+	SetCell(address image.Point, cell Cell)
+	CreateRow(typ RowType, cells ...interface{}) (err error) // the interface it can also be a Cell
+	UpdateRow(typ RowType, row int, cells ...interface{}) (err error)
+	DeleteRow(typ RowType, row int) (err error)
+	ReadRow(typ RowType, row int) (cells []Cell, err error)
+
+	Sort(col int, less func(i, j int) bool) (newTable Table)
+	Filter(col int, less func(interface{}) bool) (newTable Table)
+	SearchCell(eq interface{}, str string) (cell Cell, address image.Point, err error)
+	SearchRow(eq interface{}, str string) (cells []Cell, row int, err error)
 }
