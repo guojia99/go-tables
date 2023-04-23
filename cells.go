@@ -62,12 +62,17 @@ type Cell interface {
 	Color() color.Style
 	SetColor(color.Style) Cell
 	SetWordWrap(b bool) Cell
+	SetColWidth(w int)
+	SetRowHeight(h int)
+	ColWidth() int
+	RowHeight() int
 }
 
 type BaseCell struct {
-	Val      []string
-	style    color.Style
-	WordWrap bool
+	Val        []string
+	style      color.Style
+	WordWrap   bool
+	rowH, colW int
 }
 
 func (c *BaseCell) String() (out string) {
@@ -91,3 +96,7 @@ func (c *BaseCell) Add(in ...string)                { c.Val = append(c.Val, in..
 func (c *BaseCell) SetColor(style color.Style) Cell { c.style = style; return c }
 func (c *BaseCell) Color() color.Style              { return c.style }
 func (c *BaseCell) SetWordWrap(b bool) Cell         { c.WordWrap = b; return c }
+func (c *BaseCell) SetColWidth(w int)               { c.colW = w }
+func (c *BaseCell) SetRowHeight(h int)              { c.rowH = h }
+func (c *BaseCell) ColWidth() int                   { return c.colW }
+func (c *BaseCell) RowHeight() int                  { return c.rowH }
