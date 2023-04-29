@@ -22,14 +22,14 @@ type table struct {
 	// inArea is input the table message data, is origin result.
 	inArea image.Rectangle
 
+	page, limit, offset int
+	body                []Cells
+
 	headers []Cells
 	footers []Cells
 
-	// body fields
-	iteratorIdx         int
-	iterator            Iterator
-	page, limit, offset int
-	body                []Cells
+	iteratorIdx int
+	iterator    Iterator
 }
 
 func (t *table) String() string {
@@ -45,6 +45,7 @@ func (t *table) SetColWidth(width int, cols ...int) {
 		return
 	}
 
+	// todo 这里可以用多协程处理
 	if t.iterator == nil {
 		if cols[0] == -1 {
 			for i := 0; i < len(t.body); i++ {
@@ -75,6 +76,7 @@ func (t *table) SetRowHeight(height int, rows ...int) {
 		return
 	}
 
+	// todo 这里可以用多协程处理
 	if t.iterator == nil {
 		if rows[0] == -1 {
 			for i := 0; i < len(t.body); i++ {
@@ -102,10 +104,7 @@ func (t *table) Page(limit, offset int) (newTable Table) {
 	panic("implement me")
 }
 
-func (t *table) SetIterator(iterator Iterator) {
-	//TODO implement me
-	panic("implement me")
-}
+func (t *table) SetIterator(iterator Iterator) { t.iterator = iterator }
 
 func (t *table) SetHeader(cells ...interface{}) {
 	//TODO implement me
