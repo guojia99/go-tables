@@ -1,32 +1,27 @@
 # go-tables 
 
-### 1、about GO-TABLES
+English | [简体中文](./README-ZN.md)
 
-> - Table out command line table output tool
->
->   - A library for command line output of nice looking tables
->   - Supports different input table formats
->   - Support header customization
->   - Support beautification color, custom format color, time serialization [ development]
->   - Support custom sorting, paging, screening [development]
->
+**- Table out command line table output tool**
+* A library for command line output of nice looking tables
+* Supports different input table formats
+* Support header customization
 
-### 2、quick application
 
-> ```bash
-> go get -u -d github.com/guojia99/go-tables/table
-> ```
+### Quick usage
+```bash
+go get -u -d github.com/guojia99/go-tables/table
+```
 
 - The following 6 types structures are currently supported for output
-
-> ```
-> Struct                  struct{}
-> Map                     map[interface{}]interface{}
-> MapSlice                []map[interface{}]interface{}
-> StructSlice             []struct{}
-> Slice                   []interface{}
-> Slice2D                 [][]interface{}
-> ```
+```
+Struct                  struct{}
+Map                     map[interface{}]interface{}
+MapSlice                []map[interface{}]interface{}
+StructSlice             []struct{}
+Slice                   []interface{}
+Slice2D                 [][]interface{}
+```
 
 You can directly output your original data by calling the method quickly
 
@@ -255,11 +250,16 @@ fmt.Println(tb)
 ![](doc/doc-images/slide2D-table.png)
 
 
-
-- ##### 
-
-
-
 ----
 
-# development ...
+# development by v2
+
+- Support interactive table
+- Support cache
+- Support more operations
+- Support performance optimization
+- Full function itest
+- Support beautification color, custom format color, time serialization
+- Support custom sorting, paging, screening
+- todo...
+

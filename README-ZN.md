@@ -1,14 +1,12 @@
 # go-tables 
 
-### 1、关于GO-TABLES
+简体中文 | [English](./README.md) 
 
 > - Table Out 命令行表格输出工具
 >
 >   - 一个用于命令行输出美观的表格的库
 >   - 支持不同的输入表格式
 >   - 支持表头自定义
->   - 支持美化颜色、自定义格式颜色、时间序列化【开发中】
->   - 支持自定义排序、分页、筛查 【开发中】
 >
 
 ### 2、快速使用
@@ -17,17 +15,18 @@
 > go get -u -d github.com/guojia99/go-tables/table
 > ```
 
-- 目前支持以下五种数据结构输出
-
-> ```
-> Struct                  struct{}
-> Map                     map[interface{}]interface{}
-> StructSlice             []struct{}
-> Slice                   []interface{}
-> Slice2D                 [][]interface{}
-> ```
+- 目前支持以下六种数据结构输出
+```
+Struct                  struct{}
+Map                     map[interface{}]interface{}
+MapSlice                []map[interface{}]interface{}
+StructSlice             []struct{}
+Slice                   []interface{}
+Slice2D                 [][]interface{}
+```
 
 你可以通过快速调用的方法，直接输出你原有的数据
+
 
 ```go
 var opt = &table.Option{
@@ -38,7 +37,7 @@ tb, _ := table.SimpleTable(data, opt)
 fmt.Println(tb)
 ```
 
-- Struct
+- ##### Struct to table
 
 ```go
 type structTable struct {
@@ -72,7 +71,7 @@ fmt.Println(tb)
 
 
 
-- Map
+- ##### Map to table
 
 ```go
 data := map[string]string{
@@ -126,7 +125,37 @@ fmt.Println(tb)
 
 ![](doc/doc-images/map-table.png)
 
-- StructSlice
+- ##### map slice to table
+
+```go
+data := map[string][]string{
+		"key1": {"key1-v", "key1-v", "key1-v", "key1-v", "key1-v", "key1-v"},
+		"key2": {"key2-v2", "key2-v2", "key2-v2", "key2-v2"},
+		"key3": {"key3-v3", "key3-v3", "key3-v3", "key3-v3"},
+		"key4": {"key4-v4", "key4-v4", "key4-v4", "key4-v4"},
+		"key5": {"key5-v5", "key5-v4", "key5-v4", "key5-v4"},
+		"key6": {"key6-v6", "key6-v4", "key6-v4", "key6-v4"},
+		"key7": {"key7-v6", "key7-v4", "key7-v4"},
+}
+tb, _ := table.SimpleTable(data, opt)
+fmt.Println(tb)
+
+# out put:
+┌─────────┬─────────┬────────┬─────────┬─────────┬─────────┬─────────┐
+|  key6   |  key7   |  key1  |  key2   |  key3   |  key4   |  key5   |
+├─────────┼─────────┼────────┼─────────┼─────────┼─────────┼─────────┤
+| key6-v6 | key7-v6 | key1-v | key2-v2 | key3-v3 | key4-v4 | key5-v5 |
+| key6-v4 | key7-v4 | key1-v | key2-v2 | key3-v3 | key4-v4 | key5-v4 |
+| key6-v4 | key7-v4 | key1-v | key2-v2 | key3-v3 | key4-v4 | key5-v4 |
+| key6-v4 |         | key1-v | key2-v2 | key3-v3 | key4-v4 | key5-v4 |
+|         |         | key1-v |         |         |         |         |
+|         |         | key1-v |         |         |         |         |
+└─────────┴─────────┴────────┴─────────┴─────────┴─────────┴─────────┘
+```
+
+![](doc/doc-images/mapslice-table.png)
+
+- ##### Struct Slice to table
 
 ```go
 type structSliceTable struct {
@@ -160,7 +189,7 @@ fmt.Println(tb)
 
 ![](doc/doc-images/structslide-table.png)
 
-- Slice
+- ##### Slice to table
 
 ```go
 data := []string{
@@ -197,7 +226,7 @@ fmt.Println(tb)
 
 ![](doc/doc-images/slide-table.png)
 
-- Slide2D
+- ##### Slide2D to table
 
 ```go
 data := [][]string{
@@ -217,8 +246,14 @@ fmt.Println(tb)
 | DATA7  | DATA8  | DATA9  |
 | DATA10 | DATA11 | DATA12 |
 └────────┴────────┴────────┘
-你可以换掉table的空头部
 ```
+
+
+
+![](doc/doc-images/slide2D-table.png)
+
+
+----
 
 
 
@@ -227,17 +262,16 @@ fmt.Println(tb)
 
 
 
+----
 
-### 3、表头与拓展列 [开发中]
+#  v2 开发中
 
-- 默认表头
-- 自定义表头
-- 拓展列
-- 合并单元格
-
-### 4、序列化 [开发中]
-
-- 颜色
-- 自定义一个颜色序列化器
-- 使用时间序列化器
+- 支持可交互
+- 支持缓存
+- 更多的自定义接口
+- 支持并发
+- 全函数自测
+- 支持颜色绘制
+- 更多的数据处理
+- todo...
 
