@@ -8,52 +8,9 @@ package tables
 
 import (
 	"fmt"
-	"strings"
-
 	"github.com/gookit/color"
+	"strings"
 )
-
-type Cells []Cell
-
-func (c Cells) String() string {
-	out := ""
-	for idx, val := range c {
-		out += val.String()
-		if idx < len(c)-1 {
-			out += ","
-		}
-	}
-	return "[" + out + "]"
-}
-
-type Cells2D []Cells
-
-func (c Cells2D) String() string {
-	out := ""
-	for _, val := range c {
-		out += "\t" + val.String()
-	}
-	return "[\n" + out + "\n]"
-}
-
-func NewEmptyCell() Cell { return &BaseCell{} }
-
-func NewCell(in ...interface{}) Cell {
-	cell := &BaseCell{Val: make([]string, 0)}
-	for _, val := range in {
-		switch val.(type) {
-		case string:
-			cell.Add(strings.Split(val.(string), "\n")...)
-		case fmt.Stringer:
-			cell.Add(strings.Split(val.(fmt.Stringer).String(), "\n")...)
-		case []string:
-			cell.Add(val.([]string)...)
-		default:
-			cell.Add(fmt.Sprintf("%+v", val))
-		}
-	}
-	return cell
-}
 
 type Cell interface {
 	fmt.Stringer
@@ -100,3 +57,45 @@ func (c *BaseCell) SetColWidth(w int)               { c.colW = w }
 func (c *BaseCell) SetRowHeight(h int)              { c.rowH = h }
 func (c *BaseCell) ColWidth() int                   { return c.colW }
 func (c *BaseCell) RowHeight() int                  { return c.rowH }
+
+type Cells []Cell
+
+func (c Cells) String() string {
+	out := ""
+	for idx, val := range c {
+		out += val.String()
+		if idx < len(c)-1 {
+			out += ","
+		}
+	}
+	return "[" + out + "]"
+}
+
+type Cells2D []Cells
+
+func (c Cells2D) String() string {
+	out := ""
+	for _, val := range c {
+		out += "\t" + val.String()
+	}
+	return "[\n" + out + "\n]"
+}
+
+func NewEmptyCell() Cell { return &BaseCell{} }
+
+func NewCell(in ...interface{}) Cell {
+	cell := &BaseCell{Val: make([]string, 0)}
+	for _, val := range in {
+		switch val.(type) {
+		case string:
+			cell.Add(strings.Split(val.(string), "\n")...)
+		case fmt.Stringer:
+			cell.Add(strings.Split(val.(fmt.Stringer).String(), "\n")...)
+		case []string:
+			cell.Add(val.([]string)...)
+		default:
+			cell.Add(fmt.Sprintf("%+v", val))
+		}
+	}
+	return cell
+}
