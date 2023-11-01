@@ -1,6 +1,5 @@
 # 测试版本, 请勿使用
 
-- 预计2023年9月开发出v2.0.0版本
 - 更多实用接口, 更快的数据解析速度, 并发解析.
 - 更多默认样式、更多实用符号.
 - 支持二维编辑table, 支持任意数据快速生成table.
@@ -14,7 +13,6 @@
 
 # Beta version, do not use
 
-- The v2.0.0 version is expected to be developed in September 2023
 - More practical interfaces, faster data parsing speed, and concurrent parsing.
 - More default styles, more useful symbols.
 - Supports two-dimensional editing of tables, and supports rapid generation of tables from arbitrary data.

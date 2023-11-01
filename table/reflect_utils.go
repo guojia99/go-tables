@@ -18,7 +18,6 @@ func valueInterface(in reflect.Value) interface{} {
 	case fmt.Stringer:
 		return data.String()
 	}
-
 	switch in.Type().Kind() {
 	case reflect.Interface:
 		return interfaceVal

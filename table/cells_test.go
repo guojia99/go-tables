@@ -12,6 +12,8 @@ import (
 	"time"
 
 	"github.com/gookit/color"
+
+	color2 "github.com/guojia99/go-tables/color"
 )
 
 func TestNewCell(t *testing.T) {
@@ -80,6 +82,6 @@ func TestBaseCell_UpdateColor(t *testing.T) {
 
 func TestBaseCell_String(t *testing.T) {
 	c := NewCell("1111")
-	c.SetColor(RedBgBlue)
+	c.SetColor(color2.RedBgBlue)
 	fmt.Println(c)
 }

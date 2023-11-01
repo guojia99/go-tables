@@ -17,24 +17,21 @@ import (
 type TBKind int
 
 const (
-	None          TBKind = iota // other
-	IteratorSlice               // Iterator
-	CellSlice                   // [] Cell
-	String                      // string
-	Struct                      // struct{}
-	StructSlice                 // []struct{}
-	Slice                       // []interface{}
-	Slice2D                     // [][]interface{}
-	Map                         // map[interface{}]interface{}
-	MapSlice                    // map[interface{}][]interface{}
+	None        TBKind = iota // other
+	CellSlice                 // [] Cell  由格子组成的列表
+	String                    // string 字符串
+	Struct                    // struct{} 结构体
+	StructSlice               // []struct{} 结构体列表
+	Slice                     // []interface{} 列表
+	Slice2D                   // [][]interface{} 2维列表
+	Map                       // map[interface{}]interface{} 映射表
+	MapSlice                  // map[interface{}][]interface{} 列表映射表
 )
 
 func (t TBKind) String() string {
 	switch t {
 	case None:
 		return "none"
-	case IteratorSlice:
-		return "iterator"
 	case CellSlice:
 		return "cell slice"
 	case String:
@@ -66,8 +63,6 @@ func parsingTypeTBKind(in interface{}) TBKind {
 	switch val.Interface().(type) {
 	case []Cell, Cells:
 		return CellSlice
-	case Iterator:
-		return IteratorSlice
 	case fmt.Stringer:
 		return String
 	}
@@ -88,7 +83,7 @@ func parsingTypeTBKind(in interface{}) TBKind {
 	case reflect.Slice, reflect.Array:
 		// todo: list has use value check
 		// todo: 这里应该用取值的方式去拿到一个Cell实际接口才能确认到这个列表是一个Cells
-		if val.Type().Elem().String() == "table.Cell" {
+		if val.Type().Elem().String() == "tables.Cell" {
 			return CellSlice
 		}
 		// slice type.kind.elem is values -> []Value
@@ -135,11 +130,13 @@ func parseStruct(in interface{}) (header, row Cells, err error) {
 
 	// find all has `json`、`table` tag filed to table cells
 	for n := 0; n < inValue.NumField(); n++ {
-		if filed := inType.Field(n); isHeadCapitalLetters(filed.Name) {
-			if baseName, ok := structTagName(filed.Tag); ok {
-				header = append(header, NewCell(baseName))
-				row = append(row, NewCell(valueInterface(inValue.FieldByName(filed.Name))))
-			}
+		filed := inType.Field(n)
+		if !isHeadCapitalLetters(filed.Name) {
+			continue
+		}
+		if baseName, ok := structTagName(filed.Tag); ok {
+			header = append(header, NewCell(baseName))
+			row = append(row, NewCell(valueInterface(inValue.FieldByName(filed.Name))))
 		}
 	}
 	return
@@ -301,71 +298,4 @@ func parseMapSlice(in interface{}) (header Cells, body Cells2D, err error) {
 	}
 	return
 
-}
-
-func anyTables(in interface{}) (Table, error) {
-	kind := parsingTypeTBKind(in)
-	if kind == None {
-		return nil, fmt.Errorf("the input data is none table")
-	}
-
-	tb := &table{
-		headers: make([]Cells, 0),
-		footers: make([]Cells, 0),
-		body:    make([]Cells, 0),
-	}
-
-	switch kind {
-	case IteratorSlice:
-		tb.iterator = in.(Iterator)
-	case CellSlice:
-		tb.body = append(tb.body, in.([]Cell))
-	case String:
-		row, err := parseString(in)
-		if err != nil {
-			return nil, err
-		}
-		tb.body = append(tb.body, row)
-	case Struct:
-		header, row, err := parseStruct(in)
-		if err != nil {
-			return nil, err
-		}
-		tb.headers = append(tb.headers, header)
-		tb.body = append(tb.body, row)
-	case StructSlice:
-		header, body, err := parseStructSlice(in)
-		if err != nil {
-			return nil, err
-		}
-		tb.headers = append(tb.headers, header)
-		tb.body = append(tb.body, body...)
-	case Slice:
-		row, err := parseSlice(in)
-		if err != nil {
-			return nil, err
-		}
-		tb.body = append(tb.body, row)
-	case Slice2D:
-		body, err := parseSlice2D(in)
-		if err != nil {
-			return nil, err
-		}
-		tb.body = append(tb.body, body...)
-	case Map:
-		header, row, err := parseMap(in)
-		if err != nil {
-			return nil, err
-		}
-		tb.headers = append(tb.headers, header)
-		tb.body = append(tb.body, row)
-	case MapSlice:
-		header, body, err := parseMapSlice(in)
-		if err != nil {
-			return nil, err
-		}
-		tb.headers = append(tb.headers, header)
-		tb.body = append(tb.body, body...)
-	}
-	return tb, nil
 }

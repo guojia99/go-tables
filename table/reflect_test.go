@@ -374,7 +374,7 @@ func Test_parseSlice2D(t *testing.T) {
 				return
 			}
 			if !reflect.DeepEqual(gotBody, tt.wantBody) {
-				t.Errorf("parseSlice2D() gotBody = %s, want %s", gotBody.String(), tt.wantBody.String())
+				t.Errorf("parseSlice2D() gotBody = %s, want %s", gotBody, tt.wantBody)
 			}
 		})
 	}

@@ -14,7 +14,8 @@ import (
 var _ Table = &table{}
 
 type table struct {
-	lock sync.Mutex
+	UnimplementedTable
+	sync.Mutex
 
 	// outArea is output the table message.
 	// if your outArea is [0, 0] - [3, 3], but the table inArea is [0, 0] - [4, 4], the output *table is 3x3 not 4x4
@@ -22,11 +23,7 @@ type table struct {
 	// inArea is input the table message data, is origin result.
 	inArea image.Rectangle
 
-	page, limit, offset int
-	body                []Cells
-
+	body    []Cells
 	headers []Cells
 	footers []Cells
-
-	iteratorIdx int
 }

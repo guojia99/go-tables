@@ -4,7 +4,7 @@
  * Author:  guojia(https://github.com/guojia99)
  */
 
-package tables
+package color
 
 import "github.com/gookit/color"
 

@@ -59,6 +59,6 @@ var (
 		}
 	}
 
-	_ = os.WriteFile("table/color_utils_tools.go", []byte(fmt.Sprintf(format, basicColorStr, mergeColorStr)), 0644)
+	_ = os.WriteFile("../color/color_utils_tools.go", []byte(fmt.Sprintf(format, basicColorStr, mergeColorStr)), 0644)
 
 }

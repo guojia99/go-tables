@@ -8,28 +8,33 @@ package tables
 
 import (
 	"fmt"
-	"github.com/gookit/color"
 	"strings"
-)
 
-type Cell interface {
-	fmt.Stringer
-	Add(...string)
-	Lines() []string
-	Color() color.Style
-	SetColor(color.Style) Cell
-	SetWordWrap(b bool) Cell
-	SetColWidth(w int)
-	SetRowHeight(h int)
-	ColWidth() int
-	RowHeight() int
-}
+	"github.com/gookit/color"
+)
 
 type BaseCell struct {
 	Val        []string
 	style      color.Style
 	WordWrap   bool
 	rowH, colW int
+}
+
+func NewCell(in ...interface{}) Cell {
+	cell := &BaseCell{Val: make([]string, 0)}
+	for _, val := range in {
+		switch val.(type) {
+		case string:
+			cell.Add(strings.Split(val.(string), "\n")...)
+		case fmt.Stringer:
+			cell.Add(strings.Split(val.(fmt.Stringer).String(), "\n")...)
+		case []string:
+			cell.Add(val.([]string)...)
+		default:
+			cell.Add(fmt.Sprintf("%+v", val))
+		}
+	}
+	return cell
 }
 
 func (c *BaseCell) String() (out string) {
@@ -58,44 +63,6 @@ func (c *BaseCell) SetRowHeight(h int)              { c.rowH = h }
 func (c *BaseCell) ColWidth() int                   { return c.colW }
 func (c *BaseCell) RowHeight() int                  { return c.rowH }
 
-type Cells []Cell
+type EmptyCell = BaseCell
 
-func (c Cells) String() string {
-	out := ""
-	for idx, val := range c {
-		out += val.String()
-		if idx < len(c)-1 {
-			out += ","
-		}
-	}
-	return "[" + out + "]"
-}
-
-type Cells2D []Cells
-
-func (c Cells2D) String() string {
-	out := ""
-	for _, val := range c {
-		out += "\t" + val.String()
-	}
-	return "[\n" + out + "\n]"
-}
-
-func NewEmptyCell() Cell { return &BaseCell{} }
-
-func NewCell(in ...interface{}) Cell {
-	cell := &BaseCell{Val: make([]string, 0)}
-	for _, val := range in {
-		switch val.(type) {
-		case string:
-			cell.Add(strings.Split(val.(string), "\n")...)
-		case fmt.Stringer:
-			cell.Add(strings.Split(val.(fmt.Stringer).String(), "\n")...)
-		case []string:
-			cell.Add(val.([]string)...)
-		default:
-			cell.Add(fmt.Sprintf("%+v", val))
-		}
-	}
-	return cell
-}
+func NewEmptyCell() Cell { return &EmptyCell{} }
