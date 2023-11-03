@@ -9,9 +9,7 @@ func anyTables(in interface{}) (Table, error) {
 	}
 
 	tb := &table{
-		headers: make([]Cells, 0),
-		footers: make([]Cells, 0),
-		body:    make([]Cells, 0),
+		body: make([]Cells, 0),
 	}
 
 	switch kind {
@@ -28,14 +26,14 @@ func anyTables(in interface{}) (Table, error) {
 		if err != nil {
 			return nil, err
 		}
-		tb.headers = append(tb.headers, header)
+		tb.body = append(tb.body, header)
 		tb.body = append(tb.body, row)
 	case StructSlice:
 		header, body, err := parseStructSlice(in)
 		if err != nil {
 			return nil, err
 		}
-		tb.headers = append(tb.headers, header)
+		tb.body = append(tb.body, header)
 		tb.body = append(tb.body, body...)
 	case Slice:
 		row, err := parseSlice(in)
@@ -50,18 +48,18 @@ func anyTables(in interface{}) (Table, error) {
 		}
 		tb.body = append(tb.body, body...)
 	case Map:
-		header, row, err := parseMap(in)
+		header, body, err := parseMap(in)
 		if err != nil {
 			return nil, err
 		}
-		tb.headers = append(tb.headers, header)
-		tb.body = append(tb.body, row)
+		tb.body = append(tb.body, header)
+		tb.body = append(tb.body, body)
 	case MapSlice:
 		header, body, err := parseMapSlice(in)
 		if err != nil {
 			return nil, err
 		}
-		tb.headers = append(tb.headers, header)
+		tb.body = append(tb.body, header)
 		tb.body = append(tb.body, body...)
 	}
 	return tb, nil

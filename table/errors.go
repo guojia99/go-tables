@@ -9,5 +9,7 @@ package tables
 import "errors"
 
 var (
-	NotValidValue = errors.New("the content is not valid")
+	ErrNotValidValue = errors.New("the content is not valid")
+	ErrAddress       = errors.New("wrong address")
+	ErrRange         = errors.New("illegal operating range")
 )

@@ -4,7 +4,7 @@
  * Author:  guojia(https://github.com/guojia99)
  */
 
-package color
+package tbcolor
 
 import "github.com/gookit/color"
 

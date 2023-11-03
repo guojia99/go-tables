@@ -7,23 +7,169 @@
 package tables
 
 import (
-	"image"
+	"io"
 	"sync"
+
+	"github.com/gookit/color"
 )
 
 var _ Table = &table{}
 
 type table struct {
-	UnimplementedTable
 	sync.Mutex
+	outArea Address // 输出的大小
+	body    Cells2D
+}
 
-	// outArea is output the table message.
-	// if your outArea is [0, 0] - [3, 3], but the table inArea is [0, 0] - [4, 4], the output *table is 3x3 not 4x4
-	outArea image.Rectangle
-	// inArea is input the table message data, is origin result.
-	inArea image.Rectangle
+func (t *table) Render(writer io.Writer) error {
+	return nil
+}
 
-	body    []Cells
-	headers []Cells
-	footers []Cells
+func (t *table) String() string { return "" }
+
+func (t *table) Clone() Table {
+	newTable := &table{
+		outArea: t.outArea,
+		body:    make([]Cells, len(t.body)),
+	}
+	copy(newTable.body, t.body)
+	return newTable
+}
+
+func (t *table) OutputRect() (rect Address) { return t.outArea }
+func (t *table) SetOutputRect(rect Address) { t.outArea = rect }
+func (t *table) SetRowHeight(height int, rows ...int) error {
+	return t.doRowWithFn(func(cell Cell) { cell.SetRowHeight(height) }, rows)
+}
+func (t *table) SetColWidth(width int, cols ...int) error {
+	return t.doColWithFn(func(cell Cell) { cell.SetColWidth(width) }, cols)
+}
+func (t *table) SetCellColor(address Address, c color.Style) error {
+	return t.doAddressWithFn(func(cell Cell) { cell.SetColor(c) }, address)
+}
+func (t *table) SetCellColorByRow(color color.Style, rows ...int) error {
+	return t.doRowWithFn(func(cell Cell) { cell.SetColor(color) }, rows)
+}
+func (t *table) SetCellColorByCol(color color.Style, cols ...int) error {
+	return t.doColWithFn(func(cell Cell) { cell.SetColor(color) }, cols)
+}
+func (t *table) SetCellWordWrap(address Address, wrap bool) error {
+	return t.doAddressWithFn(func(cell Cell) { cell.SetWordWrap(wrap) }, address)
+}
+func (t *table) SetCellWordWrapByRow(wrap bool, rows ...int) error {
+	return t.doRowWithFn(func(cell Cell) { cell.SetWordWrap(wrap) }, rows)
+}
+func (t *table) SetCellWordWrapByCol(wrap bool, cols ...int) error {
+	return t.doColWithFn(func(cell Cell) { cell.SetWordWrap(wrap) }, cols)
+}
+
+func (t *table) AtRow(row int) (Cells, error) {
+	var out Cells
+	err := t.doRowWithFn(func(cell Cell) { out = append(out, cell) }, []int{row})
+	return out, err
+}
+
+func (t *table) AtCell(address Address) (cell Cell, ok bool) {
+	var out Cell
+	ok = t.doAddressWithFn(func(cell Cell) { out = cell }, address) == nil
+	return out, ok
+}
+
+func (t *table) SortByCol(col int, less func(i interface{}, j interface{}) bool) (newTable Table) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (t *table) FilterByCol(col int, less func(interface{}) bool) (newTable Table) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (t *table) SearchCell(eq func(interface{}) bool) (cell Cell, address Address, err error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (t *table) SetRows(row int, cells ...Cell) (tb Table) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (t *table) InsertRows(startRow int, cells ...Cell) (tb Table) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (t *table) SetCell(address Address, cell Cell) (tb Table) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (t *table) InsertCols(startCol int, cells ...Cell) (tb Table) {
+	t.Lock()
+	defer t.Unlock()
+
+	t.autoScaling()
+	if startCol < 0 {
+		startCol = 0
+	}
+
+	// 空的表格
+	if len(t.body) == 0 {
+		t.body = make(Cells2D, len(cells))
+		for row, cell := range cells {
+			t.body[row] = append(t.body[row], cell)
+		}
+		return tb
+	}
+
+	// 在前面的
+	// 在中间的
+	// 在末尾的
+	// 超出范围的表格
+
+	return t
+}
+
+func (t *table) DeleteRow(row int) (deleteCell Cells, err error) {
+	t.Lock()
+	defer t.Unlock()
+
+	if row > len(t.body) || row < 0 {
+		return nil, ErrRange
+	}
+
+	deleteCell = t.body[row]
+	t.body = append(t.body[:row], t.body[row+1:]...)
+	t.autoScaling()
+	return
+}
+
+func (t *table) DeleteCol(col int) (deleteCell Cells, err error) {
+	t.Lock()
+	defer t.Unlock()
+
+	t.autoScaling()
+	if len(t.body) == 0 || len(t.body[0]) == 0 {
+		return nil, nil
+	}
+
+	if col > len(t.body[0]) {
+		return nil, ErrRange
+	}
+
+	for row := 0; row < len(t.body); row++ {
+		deleteCell = append(deleteCell, t.body[row][col])
+		t.body[row] = append(t.body[row][:col], t.body[row][col+1:]...) // remove
+	}
+	return
+}
+
+func (t *table) AddBody(cells ...Cell) (tb Table) {
+	t.Lock()
+	defer t.Unlock()
+
+	t.body = append(t.body, cells)
+	t.autoScaling()
+	return t
 }

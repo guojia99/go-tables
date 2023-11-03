@@ -38,9 +38,9 @@ func NewCell(in ...interface{}) Cell {
 }
 
 func (c *BaseCell) String() (out string) {
+	// todo 换成 io模型
 	for _, line := range c.Lines() {
-		// set colors
-		out += c.style.Sprintf("%s", line)
+		out += line
 	}
 	return out
 }
@@ -50,6 +50,7 @@ func (c *BaseCell) Lines() []string {
 	}
 	var out = ""
 	for _, val := range c.Val {
+		val = color.ClearCode(val)
 		out += c.style.Sprintf("%s", val)
 	}
 	return []string{out}
@@ -58,11 +59,39 @@ func (c *BaseCell) Add(in ...string)                { c.Val = append(c.Val, in..
 func (c *BaseCell) SetColor(style color.Style) Cell { c.style = style; return c }
 func (c *BaseCell) Color() color.Style              { return c.style }
 func (c *BaseCell) SetWordWrap(b bool) Cell         { c.WordWrap = b; return c }
-func (c *BaseCell) SetColWidth(w int)               { c.colW = w }
-func (c *BaseCell) SetRowHeight(h int)              { c.rowH = h }
+func (c *BaseCell) SetColWidth(w int) Cell          { c.colW = w; return c }
+func (c *BaseCell) SetRowHeight(h int) Cell         { c.rowH = h; return c }
 func (c *BaseCell) ColWidth() int                   { return c.colW }
 func (c *BaseCell) RowHeight() int                  { return c.rowH }
+func (c *BaseCell) IsEmpty() bool                   { return len(c.Val) == 0 && len(c.style) == 0 }
 
-type EmptyCell = BaseCell
+type EmptyCell struct {
+	BaseCell
+}
 
 func NewEmptyCell() Cell { return &EmptyCell{} }
+
+func NewEmptyCells(col int) Cells {
+	var out Cells
+	for i := 0; i < col; i++ {
+		out = append(out, NewEmptyCell())
+	}
+	return out
+}
+
+func (c Cells2D) String() string {
+	out := "[\n"
+	for i := 0; i < len(c); i++ {
+		out += "\t["
+		for j := 0; j < len(c[i]); j++ {
+			out += "`" + c[i][j].String() + "`, "
+		}
+		if len(c[i]) > 0 {
+			out = out[:len(out)-2] + "]\n"
+			continue
+		}
+		out += "]\n"
+	}
+	out += "]"
+	return out
+}

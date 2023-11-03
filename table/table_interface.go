@@ -26,11 +26,12 @@ type (
 		fmt.Stringer
 		Add(...string)
 		Lines() []string
+		IsEmpty() bool
 		Color() color.Style
 		SetColor(color.Style) Cell
 		SetWordWrap(b bool) Cell
-		SetColWidth(w int)
-		SetRowHeight(h int)
+		SetColWidth(w int) Cell
+		SetRowHeight(h int) Cell
 		ColWidth() int
 		RowHeight() int
 	}
@@ -47,19 +48,18 @@ type (
 	TableArea interface {
 		OutputRect() (rect Address)                 // 获取输出的范围
 		SetOutputRect(rect Address)                 // 设置输出的范围
-		SetColWidth(width int, cols ...int) error   // 设置某些列的宽
-		SetRowHeight(height int, rows ...int) error // 设置某些行的高
+		SetRowHeight(height int, rows ...int) error // 设置某些行的高,row从0开始算, 如果rows为空,则所有高都设置
+		SetColWidth(width int, cols ...int) error   // 设置某些列的宽,col从0开始算, 如果cols为空,则所有的宽都设置
 	}
 
 	TableUpdater interface {
-		AddRows(Type RowType, cells ...Cell) (tb Table)                  // AddRows 添加一行数据
-		SetRows(Type RowType, row int, cells ...Cell) (tb Table)         // SetRows 替换某一行数据
-		InsertRows(Type RowType, startRow int, cells ...Cell) (tb Table) // InsertRows 插入一行数据
-		SetCell(Type RowType, address Address, cell Cell) (tb Table)     // SetCell 替换某个单元格的数据
-		DeleteRows(Type RowType, row int) (deleteCell Cells, ok bool)    // DeleteRows 删除某行数据
-		AddBody(cells ...Cell) (tb Table)                                // AddBody 给主体添加一行
-		AddHeader(cell ...Cell) (tb Table)                               // AddHeader 给头加一行
-		AddFoots(cell ...Cell) (tb Table)                                // AddFoots 给脚注加一行
+		SetRows(row int, cells ...Cell) (tb Table)         // SetRows 替换某一行数据
+		InsertRows(startRow int, cells ...Cell) (tb Table) // InsertRows 插入一行数据
+		InsertCols(startCol int, cells ...Cell) (tb Table) // InsertCols 插入一列数据
+		SetCell(address Address, cell Cell) (tb Table)     // SetCell 替换某个单元格的数据
+		DeleteRow(row int) (deleteCell Cells, err error)   // DeleteRows 删除某行数据
+		DeleteCol(col int) (deleteCell Cells, err error)   // DeleteCols 删除某列
+		AddBody(cells ...Cell) (tb Table)                  // AddBody 给主体添加一行
 	}
 
 	TableReader interface {
@@ -70,133 +70,24 @@ type (
 		SearchCell(eq func(interface{}) bool) (cell Cell, address Address, err error) // SearchCell 搜索首个所需的单元格
 	}
 
-	TableColor interface {
-		SetCellColor(address Address, color color.Color) error // SetCellColor 给某一单元格设置颜色
-		SetCellColorByRow(row int, color color.Color) error    // SetCellColorByRow 给某一行设置颜色
-		SetCellColorByCol(col int, color color.Color) error    // SetCellColorByCol 给某一列设置颜色
+	TableCellUpdater interface {
+		SetCellColor(address Address, color color.Style) error  // SetCellColor 给某一单元格设置颜色
+		SetCellColorByRow(color color.Style, rows ...int) error // SetCellColorByRow 给某一行设置颜色
+		SetCellColorByCol(color color.Style, cols ...int) error // SetCellColorByCol 给某一列设置颜色
+
+		SetCellWordWrap(address Address, wrap bool) error  // SetCellWordWrap 给某一单元格设置换行
+		SetCellWordWrapByRow(wrap bool, rows ...int) error // SetCellWordWrapByRow 给某一行设置换行
+		SetCellWordWrapByCol(wrap bool, cols ...int) error // SetCellWordWrapByCol 给某一列设置换行
 	}
 )
 
 type Table interface {
 	Render(io.Writer) error // 渲染
 	fmt.Stringer            // 直接把渲染结果输出
+	Clone() Table
 
 	TableArea
-	TableColor
+	TableCellUpdater
 	TableReader
 	TableUpdater
-}
-
-var _ Table = &UnimplementedTable{}
-
-type UnimplementedTable struct{}
-
-func (u UnimplementedTable) Render(writer io.Writer) error {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (u UnimplementedTable) String() string {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (u UnimplementedTable) OutputRect() (rect Address) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (u UnimplementedTable) SetOutputRect(rect Address) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (u UnimplementedTable) SetColWidth(width int, cols ...int) error {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (u UnimplementedTable) SetRowHeight(height int, rows ...int) error {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (u UnimplementedTable) SetCellColor(address Address, color color.Color) error {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (u UnimplementedTable) SetCellColorByRow(row int, color color.Color) error {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (u UnimplementedTable) SetCellColorByCol(col int, color color.Color) error {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (u UnimplementedTable) AtRow(row int) (Cells, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (u UnimplementedTable) AtCell(address Address) (cell Cell, ok bool) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (u UnimplementedTable) SortByCol(col int, less func(i interface{}, j interface{}) bool) (newTable Table) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (u UnimplementedTable) FilterByCol(col int, less func(interface{}) bool) (newTable Table) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (u UnimplementedTable) SearchCell(eq func(interface{}) bool) (cell Cell, address Address, err error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (u UnimplementedTable) AddRows(Type RowType, cells ...Cell) (tb Table) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (u UnimplementedTable) SetRows(Type RowType, row int, cells ...Cell) (tb Table) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (u UnimplementedTable) InsertRows(Type RowType, startRow int, cells ...Cell) (tb Table) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (u UnimplementedTable) SetCell(Type RowType, address Address, cell Cell) (tb Table) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (u UnimplementedTable) DeleteRows(Type RowType, row int) (deleteCell Cells, ok bool) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (u UnimplementedTable) AddBody(cells ...Cell) (tb Table) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (u UnimplementedTable) AddHeader(cell ...Cell) (tb Table) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (u UnimplementedTable) AddFoots(cell ...Cell) (tb Table) {
-	//TODO implement me
-	panic("implement me")
 }

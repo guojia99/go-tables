@@ -20,7 +20,7 @@ func main() {
  * Author: guojia(guojia99@github.com)
  */
 
-package tables
+package tbcolor
 
 import "github.com/gookit/color"
 

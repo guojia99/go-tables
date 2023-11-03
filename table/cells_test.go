@@ -13,7 +13,7 @@ import (
 
 	"github.com/gookit/color"
 
-	color2 "github.com/guojia99/go-tables/color"
+	color2 "github.com/guojia99/go-tables/table/color"
 )
 
 func TestNewCell(t *testing.T) {

@@ -67,7 +67,7 @@ func valueOf(in interface{}) (out reflect.Value, err error) {
 		out = reflect.ValueOf(in)
 	}
 	if !out.IsValid() {
-		err = NotValidValue
+		err = ErrNotValidValue
 	}
 	return
 }
