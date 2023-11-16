@@ -34,6 +34,9 @@ func NewCell(in ...interface{}) Cell {
 			cell.Add(fmt.Sprintf("%+v", val))
 		}
 	}
+	// todo  考录换行
+	cell.colW = len(cell.String())
+	cell.rowH = len(cell.Lines())
 	return cell
 }
 

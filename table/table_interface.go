@@ -13,6 +13,21 @@ import (
 	"github.com/gookit/color"
 )
 
+type (
+	Option struct {
+		OrgPoint       Address // 最终显示表格的原点，左上角
+		EndPoint       Address // 最终显示表格的终点，右下角
+		AutoWidth      bool    // 依据当前终端自动展示宽的列数
+		AutoHeight     bool    // 依据当前终端自动高
+		Contour        Contour // 表格样式
+		AutoNumberLine bool    // 是否使用自动行数输出
+		HeaderLine     int     // 大于0使用表头模式，前n行被设置表头
+		FooterLine     int     // 大于0使用表尾模式，后n行被设置表尾
+	}
+
+	OptionFn func(tb *table)
+)
+
 type RowType int
 
 const (
@@ -46,10 +61,9 @@ type Address struct {
 
 type (
 	TableArea interface {
-		OutputRect() (rect Address)                 // 获取输出的范围
-		SetOutputRect(rect Address)                 // 设置输出的范围
-		SetRowHeight(height int, rows ...int) error // 设置某些行的高,row从0开始算, 如果rows为空,则所有高都设置
-		SetColWidth(width int, cols ...int) error   // 设置某些列的宽,col从0开始算, 如果cols为空,则所有的宽都设置
+		SetOutputRect(start Address, end Address) Table // 设置输出的范围
+		SetRowHeight(height int, rows ...int) error     // 设置某些行的高,row从0开始算, 如果rows为空,则所有高都设置
+		SetColWidth(width int, cols ...int) error       // 设置某些列的宽,col从0开始算, 如果cols为空,则所有的宽都设置
 	}
 
 	TableUpdater interface {
@@ -79,6 +93,12 @@ type (
 		SetCellWordWrapByRow(wrap bool, rows ...int) error // SetCellWordWrapByRow 给某一行设置换行
 		SetCellWordWrapByCol(wrap bool, cols ...int) error // SetCellWordWrapByCol 给某一列设置换行
 	}
+
+	TableStyle interface {
+		SetContour(contour Contour) (tb Table)    // 设置contour
+		UpdateOption(opts ...OptionFn) (tb Table) // 设置部分效果配置
+		SetOption(opt Option) (tb Table)          // 强制设置效果配置
+	}
 )
 
 type Table interface {
@@ -90,4 +110,5 @@ type Table interface {
 	TableCellUpdater
 	TableReader
 	TableUpdater
+	TableStyle
 }

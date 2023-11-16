@@ -7,6 +7,7 @@
 package tables
 
 import (
+	"fmt"
 	"io"
 	"sync"
 
@@ -15,29 +16,55 @@ import (
 
 var _ Table = &table{}
 
+func NewTable() Table {
+	return &table{}
+}
+
 type table struct {
 	sync.Mutex
-	outArea Address // 输出的大小
-	body    Cells2D
+	opt  Option
+	body Cells2D
 }
 
 func (t *table) Render(writer io.Writer) error {
 	return nil
 }
 
-func (t *table) String() string { return "" }
+func (t *table) String() string {
+	t.Lock()
+	defer t.Unlock()
+
+	t.autoScaling()
+
+	if len(t.body) == 0 {
+		return ""
+	}
+
+	var width, height = t.getWidthHeight()
+	fmt.Println(width, height)
+	// 获取每行的宽
+
+	return ""
+}
 
 func (t *table) Clone() Table {
+	t.Lock()
+	defer t.Unlock()
+
 	newTable := &table{
-		outArea: t.outArea,
-		body:    make([]Cells, len(t.body)),
+		body: make([]Cells, len(t.body)),
+		opt:  t.opt,
 	}
 	copy(newTable.body, t.body)
 	return newTable
 }
 
-func (t *table) OutputRect() (rect Address) { return t.outArea }
-func (t *table) SetOutputRect(rect Address) { t.outArea = rect }
+func (t *table) SetContour(contour Contour) (tb Table) { t.opt.Contour = contour; return t }
+func (t *table) SetOutputRect(start Address, end Address) Table {
+	t.opt.OrgPoint = start
+	t.opt.EndPoint = end
+	return t
+}
 func (t *table) SetRowHeight(height int, rows ...int) error {
 	return t.doRowWithFn(func(cell Cell) { cell.SetRowHeight(height) }, rows)
 }
@@ -62,6 +89,15 @@ func (t *table) SetCellWordWrapByRow(wrap bool, rows ...int) error {
 func (t *table) SetCellWordWrapByCol(wrap bool, cols ...int) error {
 	return t.doColWithFn(func(cell Cell) { cell.SetWordWrap(wrap) }, cols)
 }
+
+func (t *table) UpdateOption(opts ...OptionFn) (tb Table) {
+	for _, opt := range opts {
+		opt(t)
+	}
+	return t
+}
+
+func (t *table) SetOption(opt Option) (tb Table) { t.opt = opt; return t }
 
 func (t *table) AtRow(row int) (Cells, error) {
 	var out Cells
@@ -124,6 +160,10 @@ func (t *table) InsertCols(startCol int, cells ...Cell) (tb Table) {
 	}
 
 	// 在前面的
+	if startCol == 0 {
+
+	}
+
 	// 在中间的
 	// 在末尾的
 	// 超出范围的表格
