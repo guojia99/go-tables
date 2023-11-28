@@ -7,7 +7,6 @@
 package tables
 
 import (
-	"fmt"
 	"io"
 	"sync"
 
@@ -31,20 +30,17 @@ func (t *table) Render(writer io.Writer) error {
 }
 
 func (t *table) String() string {
-	t.Lock()
-	defer t.Unlock()
-
-	t.autoScaling()
-
 	if len(t.body) == 0 {
 		return ""
 	}
+	t.Lock()
+	defer t.Unlock()
 
-	var width, height = t.getWidthHeight()
-	fmt.Println(width, height)
-	// 获取每行的宽
-
-	return ""
+	out := ""
+	for _, line := range t.parserTableContent() {
+		out += line
+	}
+	return out
 }
 
 func (t *table) Clone() Table {
@@ -71,6 +67,7 @@ func (t *table) SetRowHeight(height int, rows ...int) error {
 func (t *table) SetColWidth(width int, cols ...int) error {
 	return t.doColWithFn(func(cell Cell) { cell.SetColWidth(width) }, cols)
 }
+
 func (t *table) SetCellColor(address Address, c color.Style) error {
 	return t.doAddressWithFn(func(cell Cell) { cell.SetColor(c) }, address)
 }
@@ -80,6 +77,7 @@ func (t *table) SetCellColorByRow(color color.Style, rows ...int) error {
 func (t *table) SetCellColorByCol(color color.Style, cols ...int) error {
 	return t.doColWithFn(func(cell Cell) { cell.SetColor(color) }, cols)
 }
+
 func (t *table) SetCellWordWrap(address Address, wrap bool) error {
 	return t.doAddressWithFn(func(cell Cell) { cell.SetWordWrap(wrap) }, address)
 }
@@ -88,6 +86,16 @@ func (t *table) SetCellWordWrapByRow(wrap bool, rows ...int) error {
 }
 func (t *table) SetCellWordWrapByCol(wrap bool, cols ...int) error {
 	return t.doColWithFn(func(cell Cell) { cell.SetWordWrap(wrap) }, cols)
+}
+
+func (t *table) SetCellAlign(address Address, align Align) error {
+	return t.doAddressWithFn(func(cell Cell) { cell.SetAlign(align) }, address)
+}
+func (t *table) SetCellAlignByRow(align Align, rows ...int) error {
+	return t.doRowWithFn(func(cell Cell) { cell.SetAlign(align) }, rows)
+}
+func (t *table) SetCellAlignByCol(align Align, cols ...int) error {
+	return t.doColWithFn(func(cell Cell) { cell.SetAlign(align) }, cols)
 }
 
 func (t *table) UpdateOption(opts ...OptionFn) (tb Table) {
@@ -209,7 +217,24 @@ func (t *table) AddBody(cells ...Cell) (tb Table) {
 	t.Lock()
 	defer t.Unlock()
 
+	// 设置高, 一行只是这一行的最高数据
+	maxH := 0
+	for _, cell := range cells {
+		if maxH < cell.RowHeight() {
+			maxH = cell.RowHeight()
+		}
+	}
+
+	// 设置宽, 获取之前每一列的最宽的宽度，以此为标准
+
+	for idx, _ := range cells {
+		cells[idx].SetRowHeight(maxH)
+		if len(t.body) != 0 {
+			cells[idx].SetColWidth(t.getColMaxWidth(idx))
+		}
+	}
 	t.body = append(t.body, cells)
+
 	t.autoScaling()
 	return t
 }

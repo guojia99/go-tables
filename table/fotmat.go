@@ -12,112 +12,103 @@ import (
 	"strings"
 )
 
-var noWinCodeExpr = regexp.MustCompile(`\033\[[\d;?]+m`)
-
-func RealLength(in string) int {
-	in = strings.Trim(in, "\000")
-	switch runtime.GOOS {
-	case `windows`:
-		return stringLength([]rune(in))
-	}
-	return stringLength([]rune(noWinCodeExpr.ReplaceAllString(in, "")))
-}
-
 type FullWidth struct {
-	from rune
-	to   rune
+	From  rune
+	To    rune
+	Width int
 }
 
-var fullWidth = []FullWidth{
-	// Chinese
-	{0x2E80, 0x9FD0}, {0xAC00, 0xD7A3}, {0xF900, 0xFACE},
-	{0xFE00, 0xFE6C}, {0xFF00, 0xFF60}, {0x20000, 0x2FA1D},
-	{12286, 12351},
-}
+var _boxFullWidthMap = make(map[rune]int, 4096)
 
-func stringLength(r []rune) (length int) {
-	length = len(r)
-re:
-	for _, val := range r {
-		for _, twoBox := range fullWidth {
-			if val >= twoBox.from && val <= twoBox.to {
-				length++
-				continue re
-			}
+func SetBoxFullWith(in ...FullWidth) {
+	for _, box := range in {
+		for i := box.From; i < box.To; i++ {
+			_boxFullWidthMap[i] = box.Width
 		}
+	}
+}
+
+var noWinCodeExpr = regexp.MustCompile(`\033\[[\d;?]+m`)
+var defaultBoxFullWidth = []FullWidth{
+	// 中文 (Chinese)
+	{0x2E80, 0x9FD0, 2}, {0xAC00, 0xD7A3, 2}, {0xF900, 0xFACE, 2},
+	{0xFE00, 0xFE6C, 2}, {0xFF00, 0xFF60, 2}, {0x20000, 0x2FA1D, 2},
+	{0x3006, 0x303F, 2},
+
+	// 日文 (Japanese)
+	{0x3040, 0x309F, 2}, {0x30A0, 0x30FF, 2}, {0x4E00, 0x9FFF, 2},
+	{0x3400, 0x4DBF, 2}, {0x20000, 0x2A6DF, 2},
+
+	// 韩文 (Korean)
+	{0x1100, 0x11FF, 2}, {0x3130, 0x318F, 2}, {0xAC00, 0xD7A3, 2},
+}
+
+func init() {
+	SetBoxFullWith(defaultBoxFullWidth...)
+}
+
+func CodeFullWidth(in rune) int {
+	w, ok := _boxFullWidthMap[in]
+	if ok {
+		return w
+	}
+	return 1
+}
+
+func stringRealLength(r []rune) (length int) {
+	length = len(r) // base length
+	for _, val := range r {
+		w, ok := _boxFullWidthMap[val]
+		if !ok {
+			continue
+		}
+		length += w - 1
 	}
 
 	return
 }
 
-type Align int
-
-const (
-	AlignLeft Align = iota
-	AlignCenter
-	AlignRight
-
-	AlignTopLeft
-	AlignTopCenter
-	AlignTopRight
-
-	AlignBottomLeft
-	AlignBottomCenter
-	AlignBottomRight
-)
-
-// Repeat the repeat strings transform by align, and other processing.
-// in: base string
-// wantLen: want string length
-func (align Align) Repeat(in string, wantLen uint) (out string) {
-	if in == "" {
-		return strings.Repeat(" ", int(wantLen))
+// RealLength 控制台实际显示长度
+func RealLength(in string) int {
+	in = strings.Trim(in, "\000")
+	in = strings.TrimSpace(in)
+	switch runtime.GOOS {
+	case `windows`:
+		return stringRealLength([]rune(in))
 	}
-	realLen := RealLength(in)
-	repeatLen := int(wantLen) - realLen
-	if repeatLen < 0 {
-		return in[:wantLen]
-	}
-
-	switch align {
-	case AlignLeft, AlignTopLeft, AlignBottomLeft:
-		return in + strings.Repeat(" ", repeatLen)
-	case AlignCenter, AlignTopCenter, AlignBottomCenter:
-		leftL := repeatLen / 2
-		rightL := repeatLen - leftL
-		return strings.Repeat(" ", leftL) + in + strings.Repeat(" ", rightL)
-	case AlignRight, AlignTopRight, AlignBottomRight:
-		return strings.Repeat(" ", repeatLen) + in
-	default:
-		return strings.Repeat(" ", realLen)
-	}
+	return stringRealLength([]rune(noWinCodeExpr.ReplaceAllString(in, "")))
 }
 
-func (align Align) Repeats(in []string, count uint) []string {
-	var cache []string
-	for _, val := range in {
-		if RealLength(val) == 0 {
+func SplitWithRealLength(in string, maxLength int) []string {
+	var (
+		out       []string
+		runeCache = []rune(in)
+	)
+
+	if maxLength <= 0 {
+		maxLength = 32
+	}
+
+	var lastLen = maxLength
+	var lastStr = ""
+	for i := 0; i < len(runeCache); i++ {
+		c := runeCache[i]
+		l := CodeFullWidth(c)
+
+		if lastLen-l >= 0 {
+			lastLen -= l
+			lastStr += string(c)
 			continue
 		}
-		cache = append(cache, align.Repeat(val, count))
-	}
-	repeatLen := len(in) - len(cache)
-	switch align {
-	case AlignTopRight, AlignTopLeft, AlignTopCenter:
-		return append(cache, make([]string, repeatLen)...)
-	case AlignBottomRight, AlignBottomLeft, AlignBottomCenter:
-		return append(make([]string, repeatLen), cache...)
-	case AlignRight, AlignLeft, AlignCenter:
-		leftL := repeatLen / 2
-		rightL := repeatLen - leftL
-		return append(make([]string, leftL), append(cache, make([]string, rightL)...)...)
-	}
-	return in
-}
 
-func isHeadCapitalLetters(in string) bool {
-	if len(in) == 0 || !('A' <= in[0] && in[0] <= 'Z') {
-		return false
+		out = append(out, lastStr)
+		lastStr = ""
+		lastLen = maxLength
+		i-- // 这个循环并没有处理到， 所以需要返回去处理
 	}
-	return true
+
+	if lastStr != "" {
+		out = append(out, lastStr)
+	}
+	return out
 }

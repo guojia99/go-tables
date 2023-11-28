@@ -1,22 +1,29 @@
 package main
 
-import "github.com/guojia99/go-tables/table"
+import (
+	"github.com/guojia99/go-tables/table"
+)
 
 func main() {
 	t := tables.NewTable()
 
 	opt := tables.Option{
-		AutoWidth: true,
+		//AutoWidth: true,
 		//AutoHeight: true,
+		OrgPoint: tables.Address{
+			Row: 3,
+			Col: 4,
+		},
+		EndPoint: tables.Address{},
 	}
 
-	t.AddBody(
-		tables.NewCell("1111"), tables.NewCell("aaaa"), tables.NewCell("xxxx"), tables.NewCell("1111"), tables.NewCell("aaaa"), tables.NewCell("xxxx"), tables.NewCell("1111"), tables.NewCell("aaaa"), tables.NewCell("xxxx"), tables.NewCell("1111"), tables.NewCell("aaaa"), tables.NewCell("xxxx"),
-		tables.NewCell("1111"), tables.NewCell("aaaa"), tables.NewCell("xxxx"),
-	)
-	t.AddBody(tables.NewCell("2222"), tables.NewCell("bbbb"))
-	t.AddBody(tables.NewCell("3333"), tables.NewCell("cccc"))
-	t.AddBody(tables.NewCell("4444"), tables.NewCell("dddd"))
+	for i := 0; i < 6; i++ {
+		var cells []tables.Cell
+		for j := 0; j < 5; j++ {
+			cells = append(cells, tables.NewCell(i*j, "中文123abc中文"))
+		}
+		t.AddBody(cells...)
+	}
 	t.SetOption(opt)
 	t.String()
 }

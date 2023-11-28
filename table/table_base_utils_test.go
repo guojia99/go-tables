@@ -100,8 +100,7 @@ func Test_table_doColWithFn(t1 *testing.T) {
 		t1.Run(
 			tt.name, func(t1 *testing.T) {
 				t := &table{
-					outArea: tt.fields.outArea,
-					body:    tt.fields.body,
+					body: tt.fields.body,
 				}
 				if err := t.doColWithFn(tt.args.fn, tt.args.cols); (err != nil) != tt.wantErr {
 					t1.Errorf("doColWithFn() error = %v, wantErr %v", err, tt.wantErr)
@@ -168,8 +167,7 @@ func Test_table_doRowWithFn(t1 *testing.T) {
 		t1.Run(
 			tt.name, func(t1 *testing.T) {
 				t := &table{
-					outArea: tt.fields.outArea,
-					body:    tt.fields.body,
+					body: tt.fields.body,
 				}
 				if err := t.doRowWithFn(tt.args.fn, tt.args.rows); (err != nil) != tt.wantErr {
 					t1.Errorf("doRowWithFn() error = %v, wantErr %v", err, tt.wantErr)
@@ -250,8 +248,7 @@ func Test_table_doAddressWithFn(t1 *testing.T) {
 		t1.Run(
 			tt.name, func(t1 *testing.T) {
 				t := &table{
-					outArea: tt.fields.outArea,
-					body:    tt.fields.body,
+					body: tt.fields.body,
 				}
 				if err := t.doAddressWithFn(tt.args.fn, tt.args.address); (err != nil) != tt.wantErr {
 					t1.Errorf("doAddressWithFn() error = %v, wantErr %v", err, tt.wantErr)

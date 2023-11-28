@@ -14,13 +14,18 @@ import (
 )
 
 type BaseCell struct {
-	Val        []string
+	Val        []string // 字符串数组， 一个数组代表一行
 	style      color.Style
+	align      Align
 	WordWrap   bool
 	rowH, colW int
 }
 
 func NewCell(in ...interface{}) Cell {
+	if len(in) == 0 {
+		return NewEmptyCell()
+	}
+
 	cell := &BaseCell{Val: make([]string, 0)}
 	for _, val := range in {
 		switch val.(type) {
@@ -34,31 +39,68 @@ func NewCell(in ...interface{}) Cell {
 			cell.Add(fmt.Sprintf("%+v", val))
 		}
 	}
-	// todo  考录换行
-	cell.colW = len(cell.String())
-	cell.rowH = len(cell.Lines())
 	return cell
 }
 
 func (c *BaseCell) String() (out string) {
-	// todo 换成 io模型
-	for _, line := range c.Lines() {
+	var end = ""
+	if c.WordWrap {
+		end = "\n"
+	}
+
+	lines := c.Lines()
+	for idx, line := range lines {
 		out += line
+		if idx != len(lines)-1 {
+			out += end
+		}
 	}
 	return out
 }
+
+// Lines 返回这个单元格所有标准行
 func (c *BaseCell) Lines() []string {
-	if c.WordWrap {
-		return c.Val
-	}
-	var out = ""
+	var out []string
 	for _, val := range c.Val {
-		val = color.ClearCode(val)
-		out += c.style.Sprintf("%s", val)
+		cut := SplitWithRealLength(val, c.colW)
+		if len(cut) == 0 {
+			continue
+		}
+		for i := 0; i < len(cut); i++ {
+			cut[i] = c.style.Sprint(cut[i])
+		}
+		out = append(out, cut...)
 	}
-	return []string{out}
+	for len(out) < c.rowH {
+		out = append(out, "")
+	}
+	return out
 }
-func (c *BaseCell) Add(in ...string)                { c.Val = append(c.Val, in...) }
+
+func (c *BaseCell) Add(in ...string) {
+	for _, val := range in {
+		val = color.ClearCode(val)
+		c.Val = append(c.Val, val)
+	}
+
+	if !(c.rowH == 0 && c.colW == 0) {
+		c.rowH = len(c.Lines())
+		return
+	}
+
+	maxL := 0
+	for _, val := range c.Val {
+		l := RealLength(val)
+		if l > maxL {
+			maxL = l
+		}
+	}
+	c.colW = maxL
+	c.rowH = len(c.Lines())
+}
+
+func (c *BaseCell) SetAlign(a Align)                { c.align = a }
+func (c *BaseCell) Align() Align                    { return c.align }
 func (c *BaseCell) SetColor(style color.Style) Cell { c.style = style; return c }
 func (c *BaseCell) Color() color.Style              { return c.style }
 func (c *BaseCell) SetWordWrap(b bool) Cell         { c.WordWrap = b; return c }
@@ -73,6 +115,17 @@ type EmptyCell struct {
 }
 
 func NewEmptyCell() Cell { return &EmptyCell{} }
+
+func (c *EmptyCell) Lines() []string {
+	if c.rowH == 0 || c.colW == 0 {
+		return []string{""}
+	}
+	var out []string
+	for row := 0; row < c.rowH; row++ {
+		out = append(out, strings.Repeat(" ", c.colW))
+	}
+	return out
+}
 
 func NewEmptyCells(col int) Cells {
 	var out Cells

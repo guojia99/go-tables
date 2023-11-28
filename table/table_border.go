@@ -96,38 +96,54 @@ type Contour struct {
 }
 
 // Handler output : ┌──────────┬──────┐
-func (c Contour) Handler(sw []uint) string {
+func (c Contour) Handler(sw []int) string {
 	out := c.TL
 	for idx, s := range sw {
-		out += strings.Repeat(c.T, int(s))
+		out += strings.Repeat(c.T, s)
 		if idx < len(sw)-1 {
 			out += c.TI
 		}
 	}
-	out += c.TR
-	return out + "\n"
+	out += c.TR + "\n"
+	return out
 }
 
-func (c Contour) Intersection(sw []uint) string {
+// Intersection	output :	├──────────┼──────┤
+func (c Contour) Intersection(sw []int) string {
 	out := c.LI
 	for idx, s := range sw {
-		out += strings.Repeat(c.CV, int(s))
+		out += strings.Repeat(c.CV, s)
 		if idx < len(sw)-1 {
 			out += c.I
 		}
 	}
-	out += c.RI
-	return out + "\n"
+	out += c.RI + "\n"
+	return out
 }
 
-func (c Contour) Footer(sw []uint) string {
+// Content	output : `|  data1  |  data2   |`
+func (c Contour) Content(values []string) string {
+
+	out := c.L
+	for idx, val := range values {
+		out += val
+		if idx < len(values)-1 {
+			out += c.CH
+		}
+	}
+	out += c.R + "\n"
+	return out
+}
+
+// Footer output :	└──────────┴──────┘
+func (c Contour) Footer(sw []int) string {
 	out := c.DL
 	for idx, s := range sw {
-		out += strings.Repeat(c.D, int(s))
+		out += strings.Repeat(c.D, s)
 		if idx < len(sw)-1 {
 			out += c.DI
 		}
 	}
-	out += c.DR
-	return out + "\n"
+	out += c.DR + "\n"
+	return out
 }

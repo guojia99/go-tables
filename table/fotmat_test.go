@@ -8,6 +8,7 @@ package tables
 
 import (
 	"fmt"
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -90,11 +91,13 @@ func TestAlign_Repeat(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if gotOut := tt.align.Repeat(tt.args.in, uint(tt.args.wantLen)); gotOut != tt.wantOut {
-				t.Errorf("Repeat() = `%v`, want `%v`", gotOut, tt.wantOut)
-			}
-		})
+		t.Run(
+			tt.name, func(t *testing.T) {
+				if gotOut := tt.align.Repeat(tt.args.in, int(tt.args.wantLen)); gotOut != tt.wantOut {
+					t.Errorf("Repeat() = `%v`, want `%v`", gotOut, tt.wantOut)
+				}
+			},
+		)
 	}
 }
 
@@ -114,10 +117,139 @@ func Test_isHeadCapitalLetters(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := isHeadCapitalLetters(tt.args.in); got != tt.want {
-				t.Errorf("isHeadCapitalLetters() = %v, want %v", got, tt.want)
-			}
-		})
+		t.Run(
+			tt.name, func(t *testing.T) {
+				if got := isHeadCapitalLetters(tt.args.in); got != tt.want {
+					t.Errorf("isHeadCapitalLetters() = %v, want %v", got, tt.want)
+				}
+			},
+		)
 	}
+}
+
+func Test_stringLength(t *testing.T) {
+	type args struct {
+		r []rune
+	}
+	tests := []struct {
+		name       string
+		args       args
+		wantLength int
+	}{
+		{
+			name: "中文",
+			args: args{
+				r: []rune("你好世界"),
+			},
+			wantLength: 8,
+		},
+		{
+			name: "日文",
+			args: args{
+				r: []rune("こんにちは 世界"),
+			},
+			wantLength: 15,
+		},
+		{
+			name: "韩文",
+			args: args{
+				r: []rune("안녕하세요 세계"),
+			},
+			wantLength: 15,
+		},
+		{
+			name: "俄文",
+			args: args{
+				r: []rune("Привет мир"),
+			},
+			wantLength: 10,
+		},
+		{
+			name: "英文",
+			args: args{
+				r: []rune("hello world"),
+			},
+			wantLength: 11,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				if gotLength := stringRealLength(tt.args.r); gotLength != tt.wantLength {
+					t.Errorf("stringLength() = %v, want %v", gotLength, tt.wantLength)
+				}
+			},
+		)
+	}
+}
+
+func TestSplitWithRealLength(t *testing.T) {
+	type args struct {
+		in        string
+		maxLength int
+	}
+	tests := []struct {
+		name string
+		args args
+		want []string
+	}{
+		{
+			name: "0",
+			args: args{
+				in:        "123456789中",
+				maxLength: 15,
+			},
+			want: []string{
+				"123456789中",
+			},
+		},
+		{
+			name: "1",
+			args: args{
+				in:        "123456789中文123456789中文",
+				maxLength: 12,
+			},
+			want: []string{
+				"123456789中", "文123456789", "中文",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				if got := SplitWithRealLength(tt.args.in, tt.args.maxLength); !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("SplitWithRealLength() = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
+func BenchmarkSplitWithRealLength(b *testing.B) {
+	b.Run(
+		"long msg", func(b *testing.B) {
+			b.StopTimer()
+			var data string
+			for i := 0; i < 10000; i++ {
+				data += "1"
+			}
+			b.StartTimer()
+
+			for i := 0; i < b.N; i++ {
+				SplitWithRealLength(data, 100)
+			}
+		},
+	)
+
+	b.Run(
+		"shout msg", func(b *testing.B) {
+			b.StopTimer()
+			var data = "123456789中文"
+			b.StartTimer()
+
+			for i := 0; i < b.N; i++ {
+				SplitWithRealLength(data, 100)
+			}
+		},
+	)
 }

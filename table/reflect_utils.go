@@ -11,6 +11,13 @@ import (
 	"reflect"
 )
 
+func isHeadCapitalLetters(in string) bool {
+	if len(in) == 0 || !('A' <= in[0] && in[0] <= 'Z') {
+		return false
+	}
+	return true
+}
+
 // todo 这里要改动
 func valueInterface(in reflect.Value) interface{} {
 	interfaceVal := in.Interface()

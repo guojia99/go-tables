@@ -47,6 +47,8 @@ type (
 		SetWordWrap(b bool) Cell
 		SetColWidth(w int) Cell
 		SetRowHeight(h int) Cell
+		SetAlign(a Align)
+		Align() Align
 		ColWidth() int
 		RowHeight() int
 	}
@@ -86,12 +88,17 @@ type (
 
 	TableCellUpdater interface {
 		SetCellColor(address Address, color color.Style) error  // SetCellColor 给某一单元格设置颜色
-		SetCellColorByRow(color color.Style, rows ...int) error // SetCellColorByRow 给某一行设置颜色
+		SetCellColorByRow(color color.Style, rows ...int) error // SetCellColorByRow 给某一行设置颜色， rows
 		SetCellColorByCol(color color.Style, cols ...int) error // SetCellColorByCol 给某一列设置颜色
 
 		SetCellWordWrap(address Address, wrap bool) error  // SetCellWordWrap 给某一单元格设置换行
 		SetCellWordWrapByRow(wrap bool, rows ...int) error // SetCellWordWrapByRow 给某一行设置换行
 		SetCellWordWrapByCol(wrap bool, cols ...int) error // SetCellWordWrapByCol 给某一列设置换行
+
+		SetCellAlign(address Address, align Align) error  //  SetCellAlign 给某一单元格设置对齐
+		SetCellAlignByCol(align Align, cols ...int) error //  SetCellAlignByCol 给某一行设置对齐
+		SetCellAlignByRow(align Align, rows ...int) error // SetCellAlignByRow 给某一列设置对齐
+
 	}
 
 	TableStyle interface {

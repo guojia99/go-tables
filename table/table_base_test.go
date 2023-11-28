@@ -7,7 +7,9 @@ import (
 
 func _testTable() *table {
 	return &table{
-		outArea: Address{3, 3},
+		opt: Option{
+			Contour: DefaultContour,
+		},
 		body: Cells2D{
 			{NewCell(1), NewCell(2), NewCell(3)},
 			{NewCell(4), NewCell(5), NewCell(6)},
@@ -38,4 +40,24 @@ func Test_table_DeleteCol(t1 *testing.T) {
 			fmt.Println(tb.body)
 		},
 	)
+}
+
+func Test_table_String(t1 *testing.T) {
+	//tb := _testTable()
+	//fmt.Println(tb.String())
+
+	tb2 := NewTable()
+	tb2.SetOption(
+		Option{
+			Contour: DefaultContour,
+		},
+	)
+	tb2.AddBody(NewCell("123", "321"), NewCell("33122", "2131231", "2131231"))
+	tb2.AddBody(NewCell("123", "321"), NewCell("33122", "2131231", "2131231"))
+
+	_ = tb2.SetColWidth(10)
+	_ = tb2.SetRowHeight(3)
+	_ = tb2.SetCellAlignByRow(AlignCenter)
+
+	fmt.Println(tb2.String())
 }
