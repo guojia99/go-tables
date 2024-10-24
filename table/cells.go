@@ -13,11 +13,32 @@ import (
 	"github.com/gookit/color"
 )
 
+type (
+	Cell interface {
+		fmt.Stringer
+		Add(...string)
+		Lines() []string
+		IsEmpty() bool
+		Color() color.Style
+		SetColor(color.Style) Cell
+		SetWordWrap(b bool) Cell
+		SetColWidth(w int) Cell  // 如果为0则为自动宽
+		SetRowHeight(h int) Cell // 如果为0则为自动高
+		SetAlign(a Align)
+		Align() Align
+		ColWidth() int
+		RowHeight() int
+	}
+	Cells   []Cell
+	Cells2D []Cells
+)
+
 type BaseCell struct {
-	Val        []string // 字符串数组， 一个数组代表一行
+	Val      []string // 字符串数组， 一个数组代表一行
+	WordWrap bool
+
 	style      color.Style
 	align      Align
-	WordWrap   bool
 	rowH, colW int
 }
 
@@ -60,6 +81,13 @@ func (c *BaseCell) String() (out string) {
 
 // Lines 返回这个单元格所有标准行
 func (c *BaseCell) Lines() []string {
+	// 1. 最后每一行都需要经过align的处理
+	// 2. 最后每一行都需要经过style的处理
+	// 3. 处理时需要考虑自动换行
+	// 4. 有自动宽高时, 以最宽的val为准
+	// 5. 有制定宽高时, 需要处理和自动换行的关系
+	// 6. 当无自动换行时, 每个val无法通过自动换行替换到下一行去, 需要做截断
+
 	var out []string
 	for _, val := range c.Val {
 		cut := SplitWithRealLength(val, c.colW)
@@ -110,22 +138,9 @@ func (c *BaseCell) ColWidth() int                   { return c.colW }
 func (c *BaseCell) RowHeight() int                  { return c.rowH }
 func (c *BaseCell) IsEmpty() bool                   { return len(c.Val) == 0 && len(c.style) == 0 }
 
-type EmptyCell struct {
-	BaseCell
-}
+type EmptyCell = BaseCell
 
 func NewEmptyCell() Cell { return &EmptyCell{} }
-
-func (c *EmptyCell) Lines() []string {
-	if c.rowH == 0 || c.colW == 0 {
-		return []string{""}
-	}
-	var out []string
-	for row := 0; row < c.rowH; row++ {
-		out = append(out, strings.Repeat(" ", c.colW))
-	}
-	return out
-}
 
 func NewEmptyCells(col int) Cells {
 	var out Cells

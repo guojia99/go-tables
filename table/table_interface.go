@@ -36,26 +36,6 @@ const (
 	Foots
 )
 
-type (
-	Cell interface {
-		fmt.Stringer
-		Add(...string)
-		Lines() []string
-		IsEmpty() bool
-		Color() color.Style
-		SetColor(color.Style) Cell
-		SetWordWrap(b bool) Cell
-		SetColWidth(w int) Cell
-		SetRowHeight(h int) Cell
-		SetAlign(a Align)
-		Align() Align
-		ColWidth() int
-		RowHeight() int
-	}
-	Cells   []Cell
-	Cells2D []Cells
-)
-
 type Address struct {
 	Row int // 行
 	Col int // 列
